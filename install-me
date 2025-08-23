@@ -3,17 +3,164 @@
 set -e -o pipefail
 shopt -s dotglob lastpipe
 
+# Detect OS
+OS=$(uname -s)
+case "$OS" in
+    Darwin)
+        PACKAGE_MANAGER="brew"
+        INSTALL_CMD="brew install"
+        STAT_CMD="gstat"
+        ;;
+    Linux)
+        PACKAGE_MANAGER="apt"
+        INSTALL_CMD="sudo apt update && sudo apt install -y"
+        STAT_CMD="stat"
+        echo "⚠️  Note: This installer assumes Debian/Ubuntu (apt). If you're using a different"
+        echo "   Linux distribution, please install the dependencies manually using your"
+        echo "   package manager (yum, pacman, zypper, etc.)"
+        echo
+        ;;
+    *)
+        echo "⛔️ Unsupported operating system: $OS"
+        echo "   This installer supports macOS (Darwin) and Linux only."
+        exit 1
+        ;;
+esac
+
 if ! [ ${BASH_VERSINFO[0]} -ge 5 ]; then
    echo "⛔️ bash version found: $BASH_VERSION, these scripts require bash 5+"
    # beep
    tput bel
    echo "  I strongly urge you to upgrade bash to the latest version before using these scripts."
+   if [[ "$OS" == "Darwin" ]]; then
+       echo "  Run: brew install bash"
+   elif [[ "$OS" == "Linux" ]]; then
+       echo "  Most modern Linux distributions include bash 5+. Check with your package manager."
+   fi
+   echo
 fi
 
 if [ -z "$HOME" ]; then
    echo "⛔️ HOME environment variable is not set, cannot continue"
    echo "   Something is terribly wrong with your shell environment, sorry."
    exit 1
+fi
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to prompt user for installation
+prompt_install() {
+    local tool="$1"
+    local package="$2"
+    local description="$3"
+    
+    echo "📦 $tool - $description"
+    echo "   Would you like to install it? (y/N): "
+    read -r response
+    case "$response" in
+        [yY]|[yY][eE][sS])
+            echo "🔄 Installing $tool..."
+            if [[ "$OS" == "Darwin" ]]; then
+                if ! command_exists brew; then
+                    echo "⛔️ Homebrew not found. Please install it first from https://brew.sh/"
+                    return 1
+                fi
+            elif [[ "$OS" == "Linux" ]]; then
+                if ! command_exists apt; then
+                    echo "⚠️  apt not found. Please install $package manually using your package manager."
+                    return 1
+                fi
+            fi
+            
+            case "$tool" in
+                "gstat")
+                    if [[ "$OS" == "Darwin" ]]; then
+                        eval "$INSTALL_CMD coreutils"
+                    fi
+                    ;;
+                "fd")
+                    if [[ "$OS" == "Linux" ]]; then
+                        eval "$INSTALL_CMD fd-find"
+                    else
+                        eval "$INSTALL_CMD fd"
+                    fi
+                    ;;
+                "trash")
+                    if [[ "$OS" == "Linux" ]]; then
+                        eval "$INSTALL_CMD trash-cli"
+                    else
+                        eval "$INSTALL_CMD trash"
+                    fi
+                    ;;
+                *)
+                    eval "$INSTALL_CMD $package"
+                    ;;
+            esac
+            
+            if command_exists "$tool"; then
+                echo "✅ $tool installed successfully"
+            else
+                echo "⚠️  $tool installation may have failed. Please check manually."
+            fi
+            ;;
+        *)
+            echo "⏭️  Skipping $tool installation"
+            ;;
+    esac
+    echo
+}
+
+# Check dependencies
+echo "🔍 Checking dependencies..."
+echo
+
+# Define dependencies
+declare -A dependencies=(
+    ["rg"]="ripgrep|Fast line-oriented search tool (used by rgg, rgw, rw functions)"
+    ["fd"]="fd-find|Fast alternative to find (used by fdw, fdk, fdkcp functions)"
+    ["bat"]="bat|Cat clone with syntax highlighting (used by help function)"
+    ["tldr"]="tldr|Simplified and community-driven man pages (used by help function)"
+    ["yt-dlp"]="yt-dlp|YouTube downloader (used by yt_get_title function)"
+    ["lsd"]="lsd|Modern ls replacement with colors and icons (optional, used by lsd_maybe)"
+    ["trash"]="trash-cli|Safe file deletion tool (used by trash function)"
+    ["fzf"]="fzf|General-purpose command-line fuzzy finder (mentioned as recommended tool)"
+)
+
+# Add platform-specific dependencies
+if [[ "$OS" == "Darwin" ]]; then
+    dependencies["gstat"]="coreutils|GNU core utilities including gstat (used by git status functions)"
+fi
+
+# Check each dependency
+missing_deps=()
+for tool in "${!dependencies[@]}"; do
+    IFS='|' read -r package description <<< "${dependencies[$tool]}"
+    
+    if command_exists "$tool"; then
+        echo "✅ $tool is already installed"
+    else
+        echo "❌ $tool is not installed"
+        missing_deps+=("$tool")
+    fi
+done
+
+echo
+
+# Install missing dependencies if any
+if [ ${#missing_deps[@]} -gt 0 ]; then
+    echo "🚀 Found ${#missing_deps[@]} missing dependencies. Let's install them!"
+    echo
+    
+    for tool in "${missing_deps[@]}"; do
+        IFS='|' read -r package description <<< "${dependencies[$tool]}"
+        prompt_install "$tool" "$package" "$description"
+    done
+else
+    echo "🎉 All dependencies are already installed!"
+    echo
 fi
 
 cd "$(dirname "$0")" || exit 1
@@ -41,3 +188,18 @@ for scriptfile in ./.*.sh; do
    ln -svf "$source" "$target"
 
 done
+
+echo
+echo "✅ Installation complete!"
+echo
+echo "🚀 To get started, you add this to your ~/.bashrc or ~/.bash_profile,"
+echo "   or any other scripts you want to use the helpers in."
+echo
+echo "    # Source the shell helper libraries"
+echo "    source ~/.qfuncs.sh  # quick functions that can be used in scripts or on the terminal"
+echo "    source ~/.emojis.sh  # use emojis by shortcode in scripts"
+echo "    source ~/.colours.sh  # for easier use of ANSI colors in scripts"
+echo "    # Only load interactive functions in interactive shells - .bashrc or .bash_profile:"
+echo "    [[ \$- == *i* ]] && source ~/.clifuncs.sh"
+echo
+echo "Then restart your shell"

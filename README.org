@@ -1,0 +1,272 @@
+#+TITLE: Shell and Scripting Helpers
+#+AUTHOR: tigger04
+#+DATE: 2025-08-23
+
+* Overview
+
+This repository contains a collection of bash shell functions and utilities designed to make command-line work more efficient and enjoyable. The scripts emphasize performance (avoiding subshells where possible) and visual feedback using emojis instead of ANSI colors.
+
+**Key Features:**
+- 🚀 **Smart installer** that detects and installs missing dependencies automatically
+- 🔧 **Cross-platform support** (macOS and Linux) with intelligent package management
+- ⚡ **Performance-focused** functions that avoid expensive subshells
+- 🎨 **Visual feedback** using emojis for better readability in logs
+- 🛡️ **Safety features** with confirmation prompts and error handling
+
+* Pre-requisites
+The most important one is Bash v5 or higher. This is standard on modern Linux and Windows Subsystem for Linux, but on macOS requires an upgrade (basically Apple moved to zsh as they couldn't stomach the new GPL open source license).
+
+** macOS
+I'm a Mac user, the M series chips are just hard to pass on. But if you don't already have homebrew installed, and you're scripting, now is the time. Follow install instructions on https://brew.sh/
+
+Then to install/upgrade to bash v5+:
+#+begin_src sh
+brew install bash
+#+end_src
+
+And that's it.
+
+* Dependencies
+
+These scripts leverage several excellent command-line tools. The installer will automatically detect and offer to install missing dependencies:
+
+** Core Dependencies (automatically installed)
+- [ripgrep](https://github.com/BurntSushi/ripgrep) - A line-oriented search tool that recursively searches for regex patterns
+- [bat](https://github.com/sharkdp/bat) - A cat(1) clone with syntax highlighting and Git integration  
+- [fd](https://github.com/sharkdp/fd) - A simple, fast and user-friendly alternative to 'find'
+- [tldr](https://tldr.sh/) - Simplified and community-driven man pages
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - A youtube-dl fork with additional features
+- [lsd](https://github.com/Peltoche/lsd) - Modern ls replacement with colors and icons
+- [trash-cli](https://github.com/andreafrancia/trash-cli) - Command line interface to the freedesktop.org trashcan
+- [fzf](https://github.com/junegunn/fzf) - A general-purpose command-line fuzzy finder
+
+** Platform-Specific
+- **macOS**: [coreutils](https://www.gnu.org/software/coreutils/) - GNU core utilities (for =gstat=)
+
+* Installation
+
+** Quick Install
+#+begin_src sh
+git clone https://github.com/YOUR_GITHUB_USERNAME/shell-and-scripting-helpers.git
+cd shell-and-scripting-helpers
+./install-me
+#+end_src
+
+** What the Installer Does
+
+The =install-me= script is a comprehensive installer that:
+
+1. **Detects your operating system** (macOS/Linux) and selects appropriate package managers
+2. **Checks for Bash 5+** (required for many features)
+3. **Scans for dependencies** and reports which tools are missing
+4. **Offers to install missing tools** with user confirmation for each one
+5. **Creates symlinks** in your =$HOME= directory for all shell script files
+
+*** Dependency Management
+The installer automatically checks for and can install:
+- =rg= (ripgrep) - Fast search tool
+- =fd= - Modern find alternative  
+- =bat= - Enhanced cat with syntax highlighting
+- =tldr= - Simplified man pages
+- =yt-dlp= - YouTube downloader
+- =lsd= - Modern ls with colors and icons
+- =trash= - Safe file deletion
+- =fzf= - Fuzzy finder
+- =gstat= (macOS only) - GNU stat from coreutils
+
+*** Platform Support
+- **macOS**: Uses Homebrew (=brew=) for package installation
+- **Linux**: Uses APT (assumes Debian/Ubuntu) with warnings for other distributions
+- Graceful fallbacks when optional tools aren't available
+
+*** Symlink Management  
+- Creates symlinks from =~/.filename.sh= → =/path/to/repo/.filename.sh=
+- Refreshes existing symlinks automatically
+- Safely skips files that exist but aren't symlinks
+- Allows you to keep scripts up-to-date by pulling from git
+
+** Requirements
+- Bash 5.0 or higher
+- Internet connection (for dependency installation)
+- Package manager: Homebrew (macOS) or APT (Linux)
+
+* Files Overview
+
+** Core Libraries
+
+*** =.qfuncs.sh= - Quick Functions Library
+The main utility library containing performance-optimized bash functions.
+
+*Key Features:*
+- Path manipulation without subshells
+- Pretty printing with emoji icons
+- File operations and string handling
+- Cross-platform compatibility (macOS/Linux)
+
+*Notable Functions:*
+- =die()= - Error handling with informative messages
+- =warn()=, =info()=, =errortext()= - Standardized output to stderr
+- =qbase()= - Fast basename/dirname without subshells
+- =hline()=, =thinbanner()= - Pretty headers and separators
+- =fullpath()= - Resolve absolute paths
+- =timestamp()=, =datestamp()= - Date/time utilities
+- =confirm_continue()= - Interactive confirmation prompts
+
+*** =.emojis.sh= - Emoji Library
+Provides an associative array of GitHub emoji shortcodes mapped to Unicode emojis.
+
+*Usage:*
+#+begin_src bash
+source ~/.emojis.sh
+echo "${moji[grinning_face]}"  # 😀
+moji[thumbs_up]                # 👍 (using the helper function)
+#+end_src
+
+*Features:*
+- 200+ emoji mappings
+- Prevents redefinition on multiple sourcing
+- Global export for use in other scripts
+
+*** =.colours.sh= - ANSI Color Definitions
+ANSI escape sequences for terminal colors and formatting.
+
+*** =.clifuncs.sh= - Command Line Interface Functions
+Interactive shell functions and aliases for daily command-line work.
+
+*Key Functions:*
+- =aliasd()= - Create persistent aliases
+- =mkcd()= - Make directory and change into it
+- =trash()= - Safe file deletion wrapper
+- =rgg()=, =rgw()=, =rw()= - Ripgrep wrappers with common options
+- =help()= - Enhanced help using tldr and bat
+- =fdkcp()= - Find and copy files to timestamped directories
+- =tigger_dev_set_git_status_icon()= - Git status in shell prompt
+
+*Git Aliases:*
+- =s=, =status= - Git status
+- =commit()= - Smart commit with hostname
+- =pull()= - Pull with submodule support
+- =push=, =fetch=, =checkout=, =clone= - Git command shortcuts
+
+* Usage
+
+** Basic Setup
+Add to your =~/.bashrc= or =~/.bash_profile=:
+
+#+begin_src bash
+# Source the libraries
+source ~/.qfuncs.sh
+source ~/.emojis.sh
+source ~/.colours.sh
+
+# Only load interactive functions in interactive shells
+[[ $- == *i* ]] && source ~/.clifuncs.sh
+#+end_src
+
+** Example Usage
+
+*** Pretty Output
+#+begin_src bash
+info "Starting process..."           # 🔹 Starting process...
+warn "This might take a while"      # ⚠️ This might take a while
+ticktext "Process completed"        # ✅ Process completed
+#+end_src
+
+*** Path Operations
+#+begin_src bash
+qbase "/path/to/file.txt" basename dirname
+echo "File: $basename in $dirname"
+
+fullpath "relative/path" result
+echo "Absolute path: $result"
+#+end_src
+
+*** Emojis in Scripts
+#+begin_src bash
+echo "Build status: ${moji[rocket]} Deploying..."
+echo "Error: ${moji[x]} Something went wrong"
+#+end_src
+
+*** Interactive Confirmations
+#+begin_src bash
+confirm_continue "Delete all files?" || exit 1
+show_cmd_execute rm -rf /tmp/old_files
+#+end_src
+
+* Design Philosophy
+
+** Performance First
+- Avoid subshells where possible (they're expensive)
+- Use bash built-ins instead of external commands when feasible
+- Optimize for common use cases
+
+** Visual Feedback
+- Use emojis instead of ANSI colors for better log file compatibility
+- Consistent iconography across all functions
+- All user-facing output goes to stderr to avoid breaking pipes
+
+** Cross-Platform
+- Works on both macOS and Linux
+- Graceful degradation when optional tools aren't available
+- Respects platform differences (e.g., =gstat= vs =stat=)
+
+** Safety
+- Input validation and error checking
+- Confirmation prompts for destructive operations
+- Fail-fast behavior with informative error messages
+
+* Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Test on both macOS and Linux if possible
+4. Ensure bash 5+ compatibility
+5. Follow the existing code style (emoji prefixes, stderr output)
+6. Submit a pull request
+
+* License
+
+[Add your preferred license here]
+
+* Troubleshooting
+
+** Bash Version Issues
+If you see "bash version found: X.X, these scripts require bash 5+":
+
+*macOS:*
+#+begin_src bash
+brew install bash
+# Add /opt/homebrew/bin/bash to /etc/shells
+chsh -s /opt/homebrew/bin/bash
+#+end_src
+
+*Linux:*
+Most modern distributions include bash 5+. Check with =bash --version=.
+
+** Missing Dependencies
+The installer automatically detects and offers to install missing dependencies. If you need to install them manually:
+
+*macOS (using Homebrew):*
+#+begin_src bash
+brew install ripgrep fd bat tldr yt-dlp lsd trash fzf coreutils
+#+end_src
+
+*Linux (Debian/Ubuntu):*
+#+begin_src bash
+sudo apt update && sudo apt install -y ripgrep fd-find bat tldr yt-dlp lsd trash-cli fzf
+#+end_src
+
+*Other Linux Distributions:*
+Use your package manager (=yum=, =pacman=, =zypper=, etc.) to install the equivalent packages.
+
+** Package Manager Issues
+- **macOS**: If Homebrew is missing, install it from https://brew.sh/
+- **Linux**: The installer assumes Debian/Ubuntu (APT). For other distributions, install dependencies manually using your package manager.
+
+** Function-Specific Issues
+If certain functions don't work:
+- =rgg()=, =rgw()=, =rw()= require =ripgrep=
+- =fdw()=, =fdk()=, =fdkcp()= require =fd=
+- =help()= works best with =tldr= and =bat=
+- =trash()= requires the =trash= command
+- Git status functions on macOS require =gstat= (from =coreutils=)
