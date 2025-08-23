@@ -1146,8 +1146,8 @@ clean_up_plain_text() {
       -e 's/\[============\]/\n\n/g'
 }
 
-if [ ${BASH_VERSINFO[0]} -lt 5 ]; then
-   errortext "bash version found: $BASH_VERSION, requires bash 5+"
+if ! [ ${BASH_VERSINFO[0]} -ge 5 ]; then
+   echo "⛔️ bash version found: $BASH_VERSION, requires bash 5+"
    # beep
    tput bel
    ok_confirm "I don't want to kill your terminal, here's your chance to Ctrl+C"
