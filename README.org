@@ -43,23 +43,21 @@ The =install-me= script:
 4. Creates symlinks in your =$HOME= directory for all script files
 
 ** Dependencies
-
-The installer can automatically install these tools:
-
-- =ripgrep= - Fast text search
-- =fd= - Modern find replacement
-- =bat= - Enhanced cat with syntax highlighting  
-- =tldr= - Simplified man pages
+- =ripgrep= - fast recursive text search
+- =fd= - modern, fast =find= alternative
+- =bat= - replacement for =cat= with syntax highlighting  
+- =tldr= - simplified quick and dirty help/man page alternative
 - =yt-dlp= - YouTube downloader
-- =lsd= - Modern ls with colors
-- =trash= - Safe file deletion
-- =fzf= - Fuzzy finder
-- =gstat= (macOS only) - GNU stat from coreutils
+- =lsd= - modern =ls= with colors
+- =trash= - safe file deletion
+- =fzf= - fuzzy finder
+- coreutils - more powerful versions of =cp=, =mv=, and =rm=, =rsync=, and more (standard on modern Linux, available via Homebrew on macOS)
 
 ** Platform Support
 
 - *macOS*: Uses Homebrew
-- *Linux*: Uses APT (Debian/Ubuntu). Other distributions require manual dependency installation.
+- *Linux*: Uses =apt= (Debian/Ubuntu). Other distributions require manual dependency installation.
+- *Windows*: via WSL (Windows Subsystem for Linux)
 
 * Files
 
@@ -68,22 +66,26 @@ The installer can automatically install these tools:
 Performance-optimized functions for common tasks:
 
 - =die()= - Error handling
-- =warn()=, =info()= - Standardized messaging (outputs to stderr)
+- =warn()=, =info()= - Standardized messaging (outputs to stderr, safe for piping)
 - =qbase()= - Fast basename/dirname without subshells
-- =fullpath()= - Resolve absolute paths  
+- =fullpath()= - Resolve absolute paths using built-in shell functionality (fast)
 - =timestamp()=, =datestamp()= - Date/time utilities
 - =confirm_continue()= - Interactive confirmation prompts
+- =show_cmd_execute=, =confirm_cmd_execute= - Command execution/confirmation
+- more ...
 
 ** =.emojis.sh= - Emoji Support
 
 Associative array mapping GitHub emoji shortcodes to Unicode:
 #+begin_src bash
 echo "${moji[thumbs_up]}"  # 👍
+# or
+moji thumbs_up
 #+end_src
 
 ** =.colours.sh= - ANSI Colors
 
-ANSI escape sequences mapped to readable variable names.
+ANSI escape sequences mapped to human readable variable names.
 
 ** =.clifuncs.sh= - Interactive Functions
 
@@ -97,11 +99,12 @@ Command-line tools and aliases:
 
 * Usage Examples
 
-** Messaging
+** Messaging, informative processing, etc
 #+begin_src bash
 info "Starting process..."
 warn "This might take a while" 
-die "Something went wrong"
+dodgy_command || die "Something went wrong"
+show_cmd_execute ls -l /some/path
 #+end_src
 
 ** Path Operations
@@ -113,12 +116,14 @@ fullpath "relative/path" result
 ** Confirmations
 #+begin_src bash
 confirm_continue "Delete files?" || exit 1
+# or
+confirm_cmd_execute rm file
 #+end_src
 
 * Design Principles
 
-- Performance: Avoid subshells where possible
-- Consistency: All user output goes to stderr to preserve pipes
+- Performance: Avoid subshells which slow down execution
+- Consistency: user output goes to stderr to preserve pipes
 - Safety: Input validation and confirmation prompts
 - Portability: Works on macOS and Linux with graceful degradation
 

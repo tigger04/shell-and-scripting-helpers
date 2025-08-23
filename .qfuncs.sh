@@ -1053,7 +1053,6 @@ azonly() {
    else
       az_sanitize
    fi
-
 }
 
 simple_string_replace() {
@@ -1113,22 +1112,23 @@ is_image() {
    return 1
 }
 
-mv_bak_if() {
+mv_bak() {
    # Move a file to a .bak, stamping it with an index if the .bak file already exists
    local file="$1"
    local bak_file="$file.bak"
    local index=1
 
    while [[ -e "$bak_file" ]]; do
+      index=$((index + 1))
       bak_file="${file%.bak}.$index.bak"
-      ((index++))
    done
 
    if [ -e "$file" ]; then
       mv -vf "$file" "$bak_file"
+   else
+      die "File not found: $file"
    fi
 }
-alias mv_bak=mv_bak_if
 
 clean_up_plain_text() {
    sed -e 's/<[^>]*>//g' \
