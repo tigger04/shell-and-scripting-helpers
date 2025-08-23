@@ -6,18 +6,18 @@
 
 This repository contains a collection of bash shell functions and utilities designed to make command-line work more efficient and enjoyable. The scripts emphasize performance (avoiding subshells where possible) and visual feedback using emojis instead of ANSI colors.
 
-**Key Features:**
-- 🚀 **Smart installer** that detects and installs missing dependencies automatically
-- 🔧 **Cross-platform support** (macOS and Linux) with intelligent package management
-- ⚡ **Performance-focused** functions that avoid expensive subshells
-- 🎨 **Visual feedback** using emojis for better readability in logs
-- 🛡️ **Safety features** with confirmation prompts and error handling
+** Key Features
+- *Smart installer* that detects and installs missing dependencies automatically
+- *Cross-platform support* (macOS and Linux) with intelligent package management
+- *Performance-focused* functions that avoid expensive subshells
+- *Visual feedback* using emojis for better readability in logs
+- *Safety features* with confirmation prompts and error handling
 
 * Pre-requisites
-The most important one is Bash v5 or higher. This is standard on modern Linux and Windows Subsystem for Linux, but on macOS requires an upgrade (basically Apple moved to zsh as they couldn't stomach the new GPL open source license).
+The most important one is Bash v5 or higher. This is standard on modern Linux and Windows Subsystem for Linux, but on macOS requires an upgrade.
 
 ** macOS
-I'm a Mac user, the M series chips are just hard to pass on. But if you don't already have homebrew installed, and you're scripting, now is the time. Follow install instructions on https://brew.sh/
+If you don't already have homebrew installed, and you're scripting, now is the time. Follow install instructions on https://brew.sh/
 
 Then to install/upgrade to bash v5+:
 #+begin_src sh
@@ -28,7 +28,7 @@ And that's it.
 
 * Dependencies
 
-These scripts leverage several excellent command-line tools. The installer will automatically detect and offer to install missing dependencies:
+These scripts leverage a few excellent command-line tools. The installer will automatically detect and offer to install missing dependencies:
 
 ** Core Dependencies (automatically installed)
 - [ripgrep](https://github.com/BurntSushi/ripgrep) - A line-oriented search tool that recursively searches for regex patterns
@@ -41,7 +41,7 @@ These scripts leverage several excellent command-line tools. The installer will 
 - [fzf](https://github.com/junegunn/fzf) - A general-purpose command-line fuzzy finder
 
 ** Platform-Specific
-- **macOS**: [coreutils](https://www.gnu.org/software/coreutils/) - GNU core utilities (for =gstat=)
+- **macOS**: [coreutils](https://www.gnu.org/software/coreutils/) - GNU core utilities - more powerful versions of the standard Unix/Macos cli tools, standard on Linux distributions already, will prompt to install on macOS.
 
 * Installation
 
@@ -54,41 +54,25 @@ cd shell-and-scripting-helpers
 
 ** What the Installer Does
 
-The =install-me= script is a comprehensive installer that:
-
-1. **Detects your operating system** (macOS/Linux) and selects appropriate package managers
-2. **Checks for Bash 5+** (required for many features)
-3. **Scans for dependencies** and reports which tools are missing
-4. **Offers to install missing tools** with user confirmation for each one
-5. **Creates symlinks** in your =$HOME= directory for all shell script files
+1. *Detects your operating system* (macOS/Linux) and selects appropriate package manager
+2. *Checks for Bash 5+* (required for many features)
+3. *Scans for dependencies* and reports which tools are missing
+4. *Offers to install missing tools* with user confirmation for each one
+5. *Creates symlinks* in your =$HOME= directory for all shell script files
 
 *** Dependency Management
-The installer automatically checks for and can install:
-- =rg= (ripgrep) - Fast search tool
-- =fd= - Modern find alternative  
-- =bat= - Enhanced cat with syntax highlighting
-- =tldr= - Simplified man pages
-- =yt-dlp= - YouTube downloader
-- =lsd= - Modern ls with colors and icons
-- =trash= - Safe file deletion
-- =fzf= - Fuzzy finder
-- =gstat= (macOS only) - GNU stat from coreutils
+The installer automatically checks for and can installs the dependencies mentioned above.
 
 *** Platform Support
-- **macOS**: Uses Homebrew (=brew=) for package installation
-- **Linux**: Uses APT (assumes Debian/Ubuntu) with warnings for other distributions
+- *macOS*: Uses Homebrew (=brew=) for package installation
+- *Linux*: Uses APT (assumes Debian/Ubuntu) with warnings for other distributions
 - Graceful fallbacks when optional tools aren't available
 
 *** Symlink Management  
-- Creates symlinks from =~/.filename.sh= → =/path/to/repo/.filename.sh=
+- Creates symlinks from in =$HOME/=
 - Refreshes existing symlinks automatically
-- Safely skips files that exist but aren't symlinks
+- Will stop if there's already a script file with that name in the way
 - Allows you to keep scripts up-to-date by pulling from git
-
-** Requirements
-- Bash 5.0 or higher
-- Internet connection (for dependency installation)
-- Package manager: Homebrew (macOS) or APT (Linux)
 
 * Files Overview
 
@@ -99,9 +83,8 @@ The main utility library containing performance-optimized bash functions.
 
 *Key Features:*
 - Path manipulation without subshells
-- Pretty printing with emoji icons
+- Pretty printing with emoji icons output to stderr, to avoid piping issues with your scripts
 - File operations and string handling
-- Cross-platform compatibility (macOS/Linux)
 
 *Notable Functions:*
 - =die()= - Error handling with informative messages
@@ -122,24 +105,18 @@ echo "${moji[grinning_face]}"  # 😀
 moji[thumbs_up]                # 👍 (using the helper function)
 #+end_src
 
-*Features:*
-- 200+ emoji mappings
-- Prevents redefinition on multiple sourcing
-- Global export for use in other scripts
-
 *** =.colours.sh= - ANSI Color Definitions
-ANSI escape sequences for terminal colors and formatting.
+ANSI escape sequences for terminal colors and formatting mapped to human-readable variables.
 
 *** =.clifuncs.sh= - Command Line Interface Functions
 Interactive shell functions and aliases for daily command-line work.
 
 *Key Functions:*
-- =aliasd()= - Create persistent aliases
+- =aliasd()= - Create persistent aliases quickly from the cli
 - =mkcd()= - Make directory and change into it
 - =trash()= - Safe file deletion wrapper
 - =rgg()=, =rgw()=, =rw()= - Ripgrep wrappers with common options
 - =help()= - Enhanced help using tldr and bat
-- =fdkcp()= - Find and copy files to timestamped directories
 - =tigger_dev_set_git_status_icon()= - Git status in shell prompt
 
 *Git Aliases:*
@@ -165,7 +142,7 @@ source ~/.colours.sh
 
 ** Example Usage
 
-*** Pretty Output
+*** Informational Messages, to stdout, with emoji to grab attention when running eye over logs etc
 #+begin_src bash
 info "Starting process..."           # 🔹 Starting process...
 warn "This might take a while"      # ⚠️ This might take a while
@@ -208,7 +185,7 @@ show_cmd_execute rm -rf /tmp/old_files
 ** Cross-Platform
 - Works on both macOS and Linux
 - Graceful degradation when optional tools aren't available
-- Respects platform differences (e.g., =gstat= vs =stat=)
+- Respects platform differences
 
 ** Safety
 - Input validation and error checking
@@ -226,7 +203,7 @@ show_cmd_execute rm -rf /tmp/old_files
 
 * License
 
-[Add your preferred license here]
+MIT License applies to all scripts and code in this repository.
 
 * Troubleshooting
 
