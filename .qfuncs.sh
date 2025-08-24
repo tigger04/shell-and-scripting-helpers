@@ -1112,7 +1112,7 @@ is_image() {
    return 1
 }
 
-mv_bak() {
+mv_bak_if() {
    # Move a file to a .bak, stamping it with an index if the .bak file already exists
    local file="$1"
    local bak_file="$file.bak"
@@ -1125,8 +1125,14 @@ mv_bak() {
 
    if [ -e "$file" ]; then
       mv -vf "$file" "$bak_file"
+   fi
+}
+
+mv_bak() {
+   if [ -e "$1" ]; then
+      mv_bak_if "$1"
    else
-      die "File not found: $file"
+      warn "[mv_bak] file not found: $1"
    fi
 }
 
@@ -1144,6 +1150,33 @@ clean_up_plain_text() {
       -e 's/\n\n/[============]/g' \
       -e 's/\n//g' \
       -e 's/\[============\]/\n\n/g'
+}
+
+format_commas() {
+   # usage: format_commas NUMBER [VAR]
+   # puts result in VAR if specified, otherwise outputs to STDOUT
+   # e.g. format_commas 1234567890 -> 1,234,567,890
+   local num="$1"
+   local int dec
+   int="${num%%.*}"
+   dec="${num#*.}"
+   local result=""
+   while [[ $int =~ ^([0-9]+)([0-9]{3})$ ]]; do
+      int="${BASH_REMATCH[1]}"
+      result=","${BASH_REMATCH[2]}$result
+   done
+   if [[ "$num" == *.* ]]; then
+      REPLY="$int$result.$dec"
+   else
+      REPLY="$int$result"
+   fi
+
+   if [ -n "$2" ]; then # pointer
+      local -n ptr=${2}
+      ptr="$REPLY"
+   else
+      echo "$REPLY"
+   fi
 }
 
 if ! [ ${BASH_VERSINFO[0]} -ge 5 ]; then
