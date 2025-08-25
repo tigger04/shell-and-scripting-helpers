@@ -1161,19 +1161,22 @@ clean_up_plain_text() {
       -e 's/\[============\]/\n\n/g'
    )
 
+   local clean_up_text_backup=true
+
    if [ $# -gt 0 ]; then
       # we are modifying a file
       if [[ "$1" == "-i" ]]; then
-         # no backup
+         clean_up_text_backup=false
          shift
-         show_cmd_execute sed -i "$1" "${options[@]}"
-      else
-         # backup
-         mv_bak "$1"
-         show_cmd_execute sed "$REPLY" "${options[@]}" >"$1"
+      fi
+      mv_bak "$1"
+      show_cmd_execute /usr/bin/sed -E "${options[@]}" <"$REPLY" >"$1"
+
+      if ! $clean_up_text_backup; then
+         rm -f "$REPLY"
       fi
    else
-      show_cmd_execute sed "${options[@]}"
+      show_cmd_execute /usr/bin/sed "${options[@]}"
    fi
 }
 
