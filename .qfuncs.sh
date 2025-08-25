@@ -1126,6 +1126,7 @@ mv_bak_if() {
    if [ -e "$file" ]; then
       mv -vf "$file" "$bak_file"
    fi
+   REPLY="$bak_file"
 }
 
 mv_bak() {
@@ -1137,19 +1138,43 @@ mv_bak() {
 }
 
 clean_up_plain_text() {
-   sed -e 's/<[^>]*>//g' \
-      -e 's/!\[[^]]*\](\([^)]*\))//g' \
-      -e 's/!([^)]*)//g' \
-      -e 's/\[\([^]]*\)\](\([^)]*\))/\1/g' \
-      -e 's/{[^}]*}//g' \
-      -e '/^:::/d' \
-      -e 's/\\//g' \
-      -e 's/\[\]//g' \
-      -e 's/\[/*/g' \
-      -e 's/\]/*/g' \
-      -e 's/\n\n/[============]/g' \
-      -e 's/\n//g' \
+   # usage: command_outputs_to_stdin | clean_up_plaintext
+   #        (outputs to STDOUT)
+   # or:    clean_up_plaintext [-i] FILENAME
+   #        (cleans up text in a file, inline, with a backup of the original
+   #        in FILENAME.txt)
+   # -i:    if specified, no backup is created
+
+   local options=(
+      -e 's/<[^>]*>//g'
+      -e 's/!\[[^]]*\](\([^)]*\))//g'
+      -e 's/!([^)]*)//g'
+      -e 's/\[\([^]]*\)\](\([^)]*\))/\1/g'
+      -e 's/{[^}]*}//g'
+      -e '/^:::/d'
+      -e 's/\\//g'
+      -e 's/\[\]//g'
+      -e 's/\[/*/g'
+      -e 's/\]/*/g'
+      -e 's/\n\n/[============]/g'
+      -e 's/\n//g'
       -e 's/\[============\]/\n\n/g'
+   )
+
+   if [ $# -gt 0 ]; then
+      # we are modifying a file
+      if [[ "$1" == "-i" ]]; then
+         # no backup
+         shift
+         show_cmd_execute sed -i "$1" "${options[@]}"
+      else
+         # backup
+         mv_bak "$1"
+         show_cmd_execute sed "$REPLY" "${options[@]}" >"$1"
+      fi
+   else
+      show_cmd_execute sed "${options[@]}"
+   fi
 }
 
 format_commas() {
