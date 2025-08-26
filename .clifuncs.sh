@@ -82,7 +82,34 @@ fdw() {
    query="${query// /\b.\*\b}"
    query="\b$query\b"
 
-   command fd "$query"
+   show_cmd_execute fd "$query"
+}
+
+fd1() {
+   # find using fd query with max depth=1
+   local find_query=()
+   local exec_query=()
+
+   while [ $# -gt 0 ]; do
+      if [[ "$1" == "-x" ]]; then
+         exec_query+=("$@")
+         break
+      else
+         find_query+=("$1")
+         shift
+      fi
+   done
+
+   if [ ${#find_query} -eq 0 ]; then
+      find_query=(".")
+   fi
+
+   local fd_combined_query=("${find_query[@]}" -d1 "${exec_query[@]}")
+
+   # declare -p fd_combined_query
+   show_cmd_execute fd "${fd_combined_query[@]}"
+
+   # show_cmd_execute fd "$@" --max-depth=1
 }
 
 ### shell quick functions ###
