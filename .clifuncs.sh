@@ -250,7 +250,7 @@ pull() {
       # show_cmd_execute git pull --recurse-submodules
       # popd || return
    else
-      show_cmd_execute git pull --recurse-submodules
+      show_cmd_execute git pull origin master --recurse-submodules
    fi
 }
 
