@@ -25,6 +25,7 @@ if [ "${BASH_SOURCE[0]}" == "$0" ]; then
    export PATH=~/bin:~/wonky:~/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:"$PATH"
 fi
 
+
 # regexes
 export url_regex='(https?|ftp|file):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]\b'
 export httpregex="$url_regex"
