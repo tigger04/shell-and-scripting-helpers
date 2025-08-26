@@ -1145,6 +1145,8 @@ clean_up_plain_text() {
    #        in FILENAME.txt)
    # -i:    if specified, no backup is created
 
+   # I have over-engineered this ... facepalm, but it works
+
    local options=(
       -e 's/<[^>]*>//g'
       -e 's/!\[[^]]*\](\([^)]*\))//g'
@@ -1170,13 +1172,13 @@ clean_up_plain_text() {
          shift
       fi
       mv_bak "$1"
-      show_cmd_execute /usr/bin/sed -E "${options[@]}" <"$REPLY" >"$1"
+      show_cmd_execute gsed "${options[@]}" <"$REPLY" >"$1"
 
       if ! $clean_up_text_backup; then
          rm -f "$REPLY"
       fi
    else
-      show_cmd_execute /usr/bin/sed "${options[@]}"
+      show_cmd_execute gsed "${options[@]}"
    fi
 }
 
