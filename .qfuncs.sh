@@ -21,9 +21,7 @@
 #    USAGE: some_function [SOME_OPTIONAL_ARGUMENT] SOME_MANDATORY_ARGUMENT
 
 ### quick and dirty path fix ###
-if [ "${BASH_SOURCE[0]}" == "$0" ]; then
-   export PATH=~/bin:~/wonky:~/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:"$PATH"
-fi
+export PATH=~/bin:~/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:"$PATH"
 
 # regexes
 export url_regex='(https?|ftp|file):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]\b'
