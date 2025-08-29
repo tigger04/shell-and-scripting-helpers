@@ -256,13 +256,10 @@ alias fetch='git fetch'
 # NB 'add' is a script in ~/bin
 
 commit() {
-   local commit_message="$HOSTNAME:cli"
-   if [ $# -gt 0 ]; then
-      commit_message="$*"
-   fi
+   local fallback_commit_message="$USER@$HOSTNAME:cli"
+   fallback_commit_message="${*:-$fallback_commit_message}"
 
-   show_cmd_execute git add --all &&
-      show_cmd_execute git commit -am "$commit_message"
+   show_cmd_execute git commit -am "$fallback_commit_message"
 }
 
 # alias pull='git pull'
