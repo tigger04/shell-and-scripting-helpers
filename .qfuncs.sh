@@ -948,11 +948,16 @@ lsd_maybe() {
 
 is_my_git_repo() {
    # this function checks if a git repo belongs to me
+
+   if ! [ -d "$1" ]; then
+      return 3
+   fi
+
    if [ -z "$github_username" ]; then
       read -r github_username < <(gh api user --jq .login)
    fi
 
-   if [ -d "$1" ] && grep -q "$github_username" "$1/.git/config" >/dev/null 2>&1; then
+   if [ -d "$1" ] && [ -f "$1/.git/config" ] && grep -q -E "\<$github_username\>" "$1/.git/config" >/dev/null 2>&1; then
       return 0
    else
       return 1
