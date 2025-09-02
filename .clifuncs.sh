@@ -284,15 +284,17 @@ visswitch() {
 	case "$VISUAL" in
 	nvim)
 		export VISUAL=code--wait
+		export VISUAL_NOWAIT=code
 		;;
-	code)
+	code | code--wait)
 		export VISUAL=nvim
+		export VISUAL_NOWAIT=$VISUAL
 		;;
 	*)
 		export VISUAL=code--wait
 		;;
 	esac
-	declare -p VISUAL
+	declare -p VISUAL VISUAL_NOWAIT
 }
 
 hiya() {
