@@ -533,7 +533,7 @@ confirm_cmd_execute() {
 alias ccx=confirm_cmd_execute
 
 show_cmd_execute() {
-   printf '%s %s\n' "⚡️" "$*" >/dev/stderr
+   echo "⚡️ $*" >/dev/stderr
    "$@"
 }
 alias scx=show_cmd_execute
