@@ -165,10 +165,11 @@ hline() {
    local thinbanner_cols=$((cols / ${#thinbanner_bullet}))
 
    if [ $# -eq 0 ]; then
+      ### hline ###
       printf -v tmp_out "%${hline_cols}s"
       printf '%s' "${tmp_out// /$hline_bullet}"
    else
-
+      ### thinbanner ###
       local displaytext="$*"
       local displayoutput=""
 
@@ -179,7 +180,7 @@ hline() {
 
       local bullets
 
-      bullets=$((((cols - displaytext_length) / 2 - pointer_open_length - pointer_close_length)))
+      bullets=$((((thinbanner_cols - displaytext_length) / 2 - pointer_open_length - pointer_close_length)))
       bullets=$((bullets / bullet_length))
 
       printf -v tmp_out "%${bullets}s"                  # sets to n amount of spaces
@@ -189,7 +190,7 @@ hline() {
       displayoutput+="$displaytext"
       displayoutput+="$thinbanner_pointer_close"
 
-      local r_bullets_length=$(((${#displayoutput} - cols) / bullet_length))
+      local r_bullets_length=$(((${#displayoutput} - thinbanner_cols) / bullet_length))
       printf -v tmp_out "%${r_bullets_length}s" # set n number of spaces
       displayoutput+="${tmp_out// /$thinbanner_bullet}"
 
