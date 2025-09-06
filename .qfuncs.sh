@@ -540,40 +540,102 @@ confirm_cmd_execute() {
 alias ccx=confirm_cmd_execute
 
 fullpath() {
-   # try and get the full path without using executable or subshell
+   # Get the absolute, normalized path without external commands or subshells
    # usage: fullpath PATH [VAR]
-   # result in $REPLY and VAR if specified
+   # result in $REPLY and optionally in VAR if specified
 
-   local path="$1"
-   shift
-
-   if [ -n "$1" ]; then
-      local -n ptr=${1}
-      shift
-   fi
-
-   local parent=""
-   local full_path=""
-
-   if [[ "$path" == /* ]]; then
-      full_path="$path"
-   else
-      parent="${PWD}"
-      if [[ "${parent}" != */ ]]; then
-         parent="${parent}/"
+   local mypath="$1"
+   local output_var="$2"
+   
+   # Handle empty input
+   if [[ -z "$mypath" ]]; then
+      REPLY=""
+      if [[ -n "$output_var" ]]; then
+         local -n ptr="$output_var"
+         ptr=""
       fi
-      full_path="${parent}${path}"
+      return 1
    fi
 
-   # remove dots from ~/something/./something
-   full_path="${full_path//\/.\//\/}"
+   local full_path
 
-   ptr="$full_path"
-   REPLY="$ptr"
+   # Convert to absolute path if relative
+   if [[ "$mypath" == /* ]]; then
+      full_path="$mypath"
+   else
+      full_path="${PWD}/${mypath}"
+   fi
 
-   if [ $# -gt 0 ]; then
-      local -n ptr=${1}
-      ptr="$REPLY"
+   # Normalize path components using pure bash string manipulation
+   # Handle multiple slashes first
+   while [[ "$full_path" == *"//"* ]]; do
+      full_path="${full_path//\/\//\/}"
+   done
+
+   # Remove trailing slash unless it's root
+   if [[ "$full_path" != "/" && "$full_path" == *"/" ]]; then
+      full_path="${full_path%/}"
+   fi
+
+   # Handle . and .. components
+   local temp_path result_path=""
+   local IFS='/'
+   
+   # Process each component
+   temp_path="$full_path"
+   while [[ "$temp_path" == *"/"* ]]; do
+      # Get the first component
+      local component="${temp_path%%/*}"
+      temp_path="${temp_path#*/}"
+      
+      # Process component
+      case "$component" in
+         ""|".")
+            # Skip empty and current directory
+            continue
+            ;;
+         "..")
+            # Go up one directory - remove last component from result
+            if [[ "$result_path" != "" ]]; then
+               result_path="${result_path%/*}"
+            fi
+            ;;
+         *)
+            # Add component to result
+            result_path="${result_path}/${component}"
+            ;;
+      esac
+   done
+   
+   # Handle the last component (no more slashes)
+   if [[ -n "$temp_path" ]]; then
+      case "$temp_path" in
+         ""|".")
+            # Skip
+            ;;
+         "..")
+            # Go up one directory
+            if [[ "$result_path" != "" ]]; then
+               result_path="${result_path%/*}"
+            fi
+            ;;
+         *)
+            # Add component
+            result_path="${result_path}/${temp_path}"
+            ;;
+      esac
+   fi
+
+   # Ensure we have at least root
+   if [[ -z "$result_path" ]]; then
+      result_path="/"
+   fi
+
+   # Set results
+   REPLY="$result_path"
+   if [[ -n "$output_var" ]]; then
+      local -n ptr="$output_var"
+      ptr="$result_path"
    fi
 }
 
@@ -585,13 +647,9 @@ q_path() {
 nicepath() {
    # usage: nicepath PATH [VAR]
    # result in $REPLY and VAR if specified
-   local ugly_path
+   local nice_path ugly_path
    # read -r ugly_path < <(realpath "$1")
    fullpath "$1" ugly_path
-
-   if [ -n "$2" ]; then
-      local -n ptr=${2}
-   fi
 
    if [[ "$ugly_path" == "$HOME"* ]] || [[ "$ugly_path" == "$HOME" ]]; then
       printf -v nice_path '%s' "~${ugly_path#"$HOME"}"
@@ -599,8 +657,12 @@ nicepath() {
       printf -v nice_path '%s' "$ugly_path"
    fi
 
-   ptr="$nice_path"
-   REPLY="$ptr"
+   if [ -n "$2" ]; then
+      local -n ptr=${2}
+      ptr="$nice_path"
+   else
+      REPLY="$nice_path"
+   fi
 }
 
 deprecated() {
