@@ -1,4 +1,4 @@
-#shellcheck disable=SC2119
+#shellcheck disable=SC2119,SC2154,SC2034
 
 # HELPER FUNCTIONS
 
@@ -125,7 +125,7 @@ qbase() {
    REPLY=${1%"${1##*[!/]}"}
    REPLY=${REPLY##*/}
    REPLY=${REPLY%"${2/"$REPLY"/}"}
-   REPLY_DIR=${1%${REPLY}}
+   REPLY_DIR=${1%"$REPLY"}
 
    if [ -n "$2" ]; then
       local -n ptr=${2}
@@ -180,7 +180,7 @@ hline() {
 
       local bullets
 
-      bullets=$((((thinbanner_cols - displaytext_length) / 2 - pointer_open_length - pointer_close_length)))
+      bullets=$(((thinbanner_cols - displaytext_length) / 2 - pointer_open_length - pointer_close_length))
       bullets=$((bullets / bullet_length))
 
       printf -v tmp_out "%${bullets}s"                  # sets to n amount of spaces
@@ -511,6 +511,12 @@ confirm_continue() {
    fi
 }
 
+show_cmd_execute() {
+   echo "⚡️ $*" >/dev/stderr
+   "$@"
+}
+alias scx=show_cmd_execute
+
 confirm_cmd_execute() {
 
    # WTF: show command to user and request explicit y/N to execute it
@@ -532,12 +538,6 @@ confirm_cmd_execute() {
    fi
 }
 alias ccx=confirm_cmd_execute
-
-show_cmd_execute() {
-   echo "⚡️ $*" >/dev/stderr
-   "$@"
-}
-alias scx=show_cmd_execute
 
 fullpath() {
    # try and get the full path without using executable or subshell
@@ -635,17 +635,25 @@ timestamp() {
    # OPTION:
    #    -q:  do not echo, just assign
 
+   local my_timestamp
    #shellcheck disable=SC2034
-   printf -v TIMESTAMP '%(%F_%H:%M:%S)T' -1
+   printf -v my_timestamp '%(%F_%H:%M:%S)T' -1
+   local quiet=false
 
    if [[ "$1" == "-q" ]]; then
-      : # do nothing
-   elif [ $# -gt 0 ]; then
-      local -n ptr=${1}
-      ptr="$TIMESTAMP"
-   else
-      echo "$TIMESTAMP"
+      quiet=true
+      shift
    fi
+
+   # shellcheck disable=SC2034
+   TIMESTAMP="$my_timestamp"
+
+   if [ $# -gt 0 ]; then
+      local -n ptr=${1}
+      ptr="$my_timestamp"
+   fi
+
+   $quiet || echo "$my_timestamp"
 }
 
 datestamp() {
@@ -1033,6 +1041,7 @@ azonly() {
 
             c=${azonly_line:$pos:1}
 
+            #shellcheck disable=SC2254
             case "$c" in
 
             $az_pattern)
@@ -1128,7 +1137,8 @@ mv_bak_if() {
    done
 
    if [ -e "$file" ]; then
-      mv -vf "$file" "$bak_file"
+      warn "$file -> $bak_file"
+      mv -f "$file" "$bak_file"
    fi
    REPLY="$bak_file"
 }
