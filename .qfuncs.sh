@@ -515,6 +515,12 @@ show_cmd_execute() {
    echo "⚡️ $*" >/dev/stderr
    "$@"
 }
+
+show_cmd_execute_oneline() {
+   echo -n "⚡️ $*" >/dev/stderr
+   "$@" | oneline 2>&1
+}
+
 alias scx=show_cmd_execute
 
 confirm_cmd_execute() {
@@ -546,7 +552,7 @@ fullpath() {
 
    local mypath="$1"
    local output_var="$2"
-   
+
    # Handle empty input
    if [[ -z "$mypath" ]]; then
       REPLY=""
@@ -580,49 +586,49 @@ fullpath() {
    # Handle . and .. components
    local temp_path result_path=""
    local IFS='/'
-   
+
    # Process each component
    temp_path="$full_path"
    while [[ "$temp_path" == *"/"* ]]; do
       # Get the first component
       local component="${temp_path%%/*}"
       temp_path="${temp_path#*/}"
-      
+
       # Process component
       case "$component" in
-         ""|".")
-            # Skip empty and current directory
-            continue
-            ;;
-         "..")
-            # Go up one directory - remove last component from result
-            if [[ "$result_path" != "" ]]; then
-               result_path="${result_path%/*}"
-            fi
-            ;;
-         *)
-            # Add component to result
-            result_path="${result_path}/${component}"
-            ;;
+      "" | ".")
+         # Skip empty and current directory
+         continue
+         ;;
+      "..")
+         # Go up one directory - remove last component from result
+         if [[ "$result_path" != "" ]]; then
+            result_path="${result_path%/*}"
+         fi
+         ;;
+      *)
+         # Add component to result
+         result_path="${result_path}/${component}"
+         ;;
       esac
    done
-   
+
    # Handle the last component (no more slashes)
    if [[ -n "$temp_path" ]]; then
       case "$temp_path" in
-         ""|".")
-            # Skip
-            ;;
-         "..")
-            # Go up one directory
-            if [[ "$result_path" != "" ]]; then
-               result_path="${result_path%/*}"
-            fi
-            ;;
-         *)
-            # Add component
-            result_path="${result_path}/${temp_path}"
-            ;;
+      "" | ".")
+         # Skip
+         ;;
+      "..")
+         # Go up one directory
+         if [[ "$result_path" != "" ]]; then
+            result_path="${result_path%/*}"
+         fi
+         ;;
+      *)
+         # Add component
+         result_path="${result_path}/${temp_path}"
+         ;;
       esac
    fi
 
