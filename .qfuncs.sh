@@ -802,12 +802,14 @@ sanitize() {
    # usage: sanitize STRING [TARGET_VAR]
    # result in $REPLY or $TARGET_VAR if specified
 
-   if [ -n "$2" ]; then
-      local -n REPLY=${2}
-   fi
-
    REPLY="${1//[^[:alnum:]]/_}"
 
+   if [ -n "$2" ]; then
+      local -n ptr=${2}
+      ptr="$REPLY"
+   else
+      echo "$REPLY"
+   fi
 }
 
 qpager() {
