@@ -90,7 +90,7 @@ announce() {
 
 info() {
    # USAGE: info MESSAGE
-   echo -e "🔹 $*" >&2
+   echo -e "🚹 $*" >&2
 }
 
 highlight() {
