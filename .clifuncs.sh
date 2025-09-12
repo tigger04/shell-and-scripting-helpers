@@ -275,6 +275,7 @@ pull() {
 		# popd || return
 	else
 		show_cmd_execute git pull origin master --recurse-submodules
+      show_cmd_execute git submodule update --remote
 	fi
 }
 
