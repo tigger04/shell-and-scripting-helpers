@@ -1214,6 +1214,8 @@ mv_bak_if() {
       warn "$file -> $bak_file"
       mv -f "$file" "$bak_file"
       REPLY="$bak_file"
+   else
+      unset REPLY
    fi
 }
 
