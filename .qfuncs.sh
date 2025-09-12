@@ -1206,11 +1206,15 @@ mv_bak_if() {
       bak_file="${file%.bak}.$index.bak"
    done
 
+   if [ -e "$bak_file" ]; then
+      die "This should never happen: $bak_file already exists"
+   fi
+
    if [ -e "$file" ]; then
       warn "$file -> $bak_file"
       mv -f "$file" "$bak_file"
+      REPLY="$bak_file"
    fi
-   REPLY="$bak_file"
 }
 
 mv_bak() {
