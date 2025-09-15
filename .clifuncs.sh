@@ -176,8 +176,8 @@ trash() {
 }
 
 rgg() {
-	if [ $# -gt 0 ] && [[ $1 =~ ^[0-9]$ ]]; then
-		depth=$1
+	if  [[ $1 =~ ^-([0-9]+)$ ]]; then
+		depth=${BASH_REMATCH[1]}
 		shift
 	else
 		depth=1
@@ -185,6 +185,7 @@ rgg() {
 
 	rg "$@" --max-depth=$depth
 }
+alias rg1='rgg -1'
 
 rgw() {
 	rg "$@" -w
