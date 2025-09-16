@@ -1195,6 +1195,27 @@ is_image() {
    return 1
 }
 
+rm_if() {
+   # remove file, if it exists
+
+   local rm_if_verbose=true
+   if [[ "$1" == "-q" ]]; then
+      rm_if_verbose=false
+      shift
+   fi
+
+   while [ $# -gt 0 ]; do
+      if [ -e "$1" ]; then
+         if trash "$1" >/dev/null 2>&1; then
+            if $rm_if_verbose; then
+               info trashed "$1"
+            fi
+         fi
+      fi
+      shift
+   done 2>&1
+}
+
 mv_bak_if() {
    # Move a file to a .bak, stamping it with an index if the .bak file already exists
    local file="$1"
