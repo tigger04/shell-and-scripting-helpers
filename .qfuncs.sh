@@ -1347,3 +1347,104 @@ else
    read -r mv < <(which mv)
    _os_font_dir=~/.local/share/fonts
 fi
+
+format_manpage() {
+   # formates output like a manpage and pipes to less
+   # usage: command --help | format_manpage | less -R
+   #
+   # Should handle cases where ANSI already in input
+
+   local line
+   local in_section=false
+   local prev_line=""
+   
+   # Check if we have an interactive terminal using tput
+   local use_colors=false
+   if tput colors >/dev/null 2>&1 && [ "$(tput colors)" -gt 0 ]; then
+      use_colors=true
+      # Define colors like a manpage
+      local bold underline reset dim cyan yellow green red
+      bold=$(tput bold)
+      underline=$(tput smul)
+      reset=$(tput sgr0)
+      dim=$(tput dim)
+      cyan=$(tput setaf 6)
+      yellow=$(tput setaf 3)
+      green=$(tput setaf 2)
+      red=$(tput setaf 1)
+   else
+      local bold="" underline="" reset="" dim="" cyan="" yellow="" green="" red=""
+   fi
+   
+   while IFS= read -r line; do
+      # Strip ANSI escape sequences for processing
+      local clean_line="${line//$'\033'\[[0-9;]*m/}"
+      
+      # Skip empty lines at start
+      if [[ -z "$clean_line" && -z "$prev_line" ]]; then
+         continue
+      fi
+      
+      # Detect section headers (lines that are all caps, or start with uppercase and contain colons)
+      if [[ "$clean_line" =~ ^[[:space:]]*[A-Z][A-Z[:space:]]*:?[[:space:]]*$ ]] || 
+         [[ "$clean_line" =~ ^[[:space:]]*[A-Z][A-Z[:space:]_-]*[[:space:]]*$ && ${#clean_line} -gt 3 ]]; then
+         
+         # Add extra spacing before section headers (except first)
+         if [[ -n "$prev_line" ]]; then
+            echo
+         fi
+         
+         if $use_colors; then
+            # Make section headers bold cyan like classic manpages
+            printf '%s%s%s%s\n' "$bold" "$cyan" "$clean_line" "$reset"
+         else
+            # Make section headers bold by adding them twice with backspaces (traditional method)
+            printf '%s\b%s\n' "$clean_line" "$clean_line"
+         fi
+         in_section=true
+      
+      # Handle option lines (lines starting with - or --)  
+      elif [[ "$clean_line" =~ ^[[:space:]]*(-+[a-zA-Z0-9-]+) ]]; then
+         # Make option names bold
+         local option="${BASH_REMATCH[1]}"
+         local rest="${clean_line#*"$option"}"
+         
+         if $use_colors; then
+            # Options in bold yellow
+            printf '%s%s%s%s%s\n' "$bold" "$yellow" "$option" "$reset" "$rest"
+         else
+            printf '%s\b%s%s\n' "$option" "$option" "$rest"
+         fi
+      
+      # Handle file paths and URLs (including ~ paths)
+      elif [[ "$clean_line" =~ (~/[a-zA-Z0-9._/-]*|/[a-zA-Z0-9._/-]+|https?://[a-zA-Z0-9._/-]+) ]]; then
+         if $use_colors; then
+            # Highlight paths and URLs in green
+            local highlighted_line="$line"
+            local path_match="${BASH_REMATCH[0]}"
+            highlighted_line="${highlighted_line//$path_match/${green}$path_match${reset}}"
+            echo "$highlighted_line"
+         else
+            echo "$line"
+         fi
+      
+      # Handle quoted text
+      elif [[ "$clean_line" =~ \"[^\"]+\" ]]; then
+         if $use_colors; then
+            # Highlight quoted strings in dim
+            local highlighted_line="$line"
+            local quote_match="${BASH_REMATCH[0]}"
+            highlighted_line="${highlighted_line//$quote_match/${dim}$quote_match${reset}}"
+            echo "$highlighted_line"
+         else
+            echo "$line"
+         fi
+      
+      # Regular content lines
+      else
+         echo "$line"
+      fi
+      
+      prev_line="$clean_line"
+   done
+}
