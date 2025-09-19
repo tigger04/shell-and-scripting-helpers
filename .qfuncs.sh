@@ -1167,7 +1167,8 @@ simple_string_replace() {
 ### quick variables ###
 
 # basename of the running script for scripts to be able to use quickly
-qbase "$0" cmd_base cmd_dir
+read -r cmd_src < <(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+qbase "$cmd_src" cmd_base cmd_dir
 export cmd_base cmd_dir
 
 # set debug flag
@@ -1358,9 +1359,10 @@ format_manpage() {
    local in_section=false
    local prev_line=""
    
-   # Check if we have an interactive terminal using tput
+   # Check if we have an interactive terminal using tput and not piped
+   # The [ -t 1 ] test checks if file descriptor 1 (stdout) is connected to a terminal i.e. >&1
    local use_colors=false
-   if tput colors >/dev/null 2>&1 && [ "$(tput colors)" -gt 0 ]; then
+   if tput colors >/dev/null 2>&1 && [ "$(tput colors)" -gt 0 ] && [ -t 1 ]; then
       use_colors=true
       # Define colors like a manpage
       local bold underline reset dim cyan yellow green red
