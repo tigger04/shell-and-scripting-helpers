@@ -1170,7 +1170,7 @@ simple_string_replace() {
 ### quick variables ###
 
 # basename of the running script for scripts to be able to use quickly
-read -r cmd_src < <(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+fullpath "$0" cmd_src
 qbase "$cmd_src" cmd_base cmd_dir
 export cmd_base cmd_dir
 
