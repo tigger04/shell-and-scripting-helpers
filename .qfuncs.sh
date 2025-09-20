@@ -137,6 +137,10 @@ qbase() {
       ptr="$REPLY_DIR"
    fi
 
+   if [[ "$REPLY" == */* ]]; then
+      die "qbase: invalid path\n\$REPLY=$REPLY\n\$1=$1"
+   fi
+
    # printf -v REPLY '%s' "${tmp}"
 }
 
@@ -296,7 +300,7 @@ ok_pause() {
    # this is way over-engineered for the sake of funky dots
    # ok_pause_reply returns the keypress
 
-   declare -l ok_timeout ok_count prompt_message cols remaining_cols total_dots dots
+   local ok_timeout ok_count prompt_message cols remaining_cols total_dots dots
 
    ok_timeout=0 # default
 
@@ -387,7 +391,7 @@ ok_confirm() {
 
    # this is way over-engineered for the sake of funky dots
 
-   declare -l ok_timeout ok_count prompt_message cols remaining_cols total_dots dots
+   local ok_timeout ok_count prompt_message cols remaining_cols total_dots dots
    ok_timeout=15 # default
    long_wait_message=(
       ".    "
@@ -759,28 +763,27 @@ path_stem_ext() {
    # usage: path_stem PATH [STEM_VAR] [EXT_VAR]
    # result in $REPLY_STEM and $REPLY_EXT and STEM_VAR, EXT_VAR if specified
 
-   local full_path="${1##*/}"
+   local base
+   qbase "$1" base
+
+   # if [[ $full_path =~ ^([^\/]+/)*(.*)\.([a-zA-Z0-9]{1,6})$ ]]; then
+   if [[ $base =~ ^(.+)\.([^\.]+)$ ]]; then
+      REPLY_STEM="${BASH_REMATCH[1]}"
+      REPLY_EXT="${BASH_REMATCH[2]}"
+   else
+      REPLY_STEM="$base"
+      REPLY_EXT=""
+   fi
 
    if [ -n "$2" ]; then
       local -n stem_ptr=${2}
+      stem_ptr="$REPLY_STEM"
    fi
 
    if [ -n "$3" ]; then
       local -n ext_ptr=${3}
+      ext_ptr="$REPLY_EXT"
    fi
-
-   if [[ $full_path =~ ^([^\/]+/)*(.*)\.([a-zA-Z0-9]{1,6})$ ]]; then
-      REPLY_STEM="${BASH_REMATCH[2]}"
-      REPLY_EXT="${BASH_REMATCH[3]}"
-   else
-      REPLY_STEM="$full_path"
-      REPLY_EXT=""
-   fi
-
-   #shellcheck disable=SC2034
-   stem_ptr="$REPLY_STEM"
-   #shellcheck disable=SC2034
-   ext_ptr="$REPLY_EXT"
 }
 
 caller() {
@@ -886,7 +889,7 @@ blockchart() {
       bc_scheme=('🟥' '🟨' '🟩')
    fi
 
-   declare -li bc_metric_unadulterated=$(($1 + 0))
+   local -i bc_metric_unadulterated=$(($1 + 0))
 
    local bc_empty='\U2B1B'
 
@@ -912,7 +915,7 @@ blockchart() {
    # unsure ^^
    local bc_block_count_empty=$((bc_maxblocks - bc_block_count))
 
-   declare -li bc_index=0
+   local -i bc_index=0
    local bc_color="${bc_scheme[0]}"
 
    while [ $bc_index -lt ${#bc_limits[@]} ]; do
@@ -1358,7 +1361,7 @@ format_manpage() {
    local line
    local in_section=false
    local prev_line=""
-   
+
    # Check if we have an interactive terminal using tput and not piped
    # The [ -t 1 ] test checks if file descriptor 1 (stdout) is connected to a terminal i.e. >&1
    local use_colors=false
@@ -1377,25 +1380,25 @@ format_manpage() {
    else
       local bold="" underline="" reset="" dim="" cyan="" yellow="" green="" red=""
    fi
-   
+
    while IFS= read -r line; do
       # Strip ANSI escape sequences for processing
       local clean_line="${line//$'\033'\[[0-9;]*m/}"
-      
+
       # Skip empty lines at start
       if [[ -z "$clean_line" && -z "$prev_line" ]]; then
          continue
       fi
-      
+
       # Detect section headers (lines that are all caps, or start with uppercase and contain colons)
-      if [[ "$clean_line" =~ ^[[:space:]]*[A-Z][A-Z[:space:]]*:?[[:space:]]*$ ]] || 
+      if [[ "$clean_line" =~ ^[[:space:]]*[A-Z][A-Z[:space:]]*:?[[:space:]]*$ ]] ||
          [[ "$clean_line" =~ ^[[:space:]]*[A-Z][A-Z[:space:]_-]*[[:space:]]*$ && ${#clean_line} -gt 3 ]]; then
-         
+
          # Add extra spacing before section headers (except first)
          if [[ -n "$prev_line" ]]; then
             echo
          fi
-         
+
          if $use_colors; then
             # Make section headers bold cyan like classic manpages
             printf '%s%s%s%s\n' "$bold" "$cyan" "$clean_line" "$reset"
@@ -1404,20 +1407,20 @@ format_manpage() {
             printf '%s\b%s\n' "$clean_line" "$clean_line"
          fi
          in_section=true
-      
-      # Handle option lines (lines starting with - or --)  
+
+      # Handle option lines (lines starting with - or --)
       elif [[ "$clean_line" =~ ^[[:space:]]*(-+[a-zA-Z0-9-]+) ]]; then
          # Make option names bold
          local option="${BASH_REMATCH[1]}"
          local rest="${clean_line#*"$option"}"
-         
+
          if $use_colors; then
             # Options in bold yellow
             printf '%s%s%s%s%s\n' "$bold" "$yellow" "$option" "$reset" "$rest"
          else
             printf '%s\b%s%s\n' "$option" "$option" "$rest"
          fi
-      
+
       # Handle file paths and URLs (including ~ paths)
       elif [[ "$clean_line" =~ (~/[a-zA-Z0-9._/-]*|/[a-zA-Z0-9._/-]+|https?://[a-zA-Z0-9._/-]+) ]]; then
          if $use_colors; then
@@ -1429,7 +1432,7 @@ format_manpage() {
          else
             echo "$line"
          fi
-      
+
       # Handle quoted text
       elif [[ "$clean_line" =~ \"[^\"]+\" ]]; then
          if $use_colors; then
@@ -1441,12 +1444,12 @@ format_manpage() {
          else
             echo "$line"
          fi
-      
+
       # Regular content lines
       else
          echo "$line"
       fi
-      
+
       prev_line="$clean_line"
    done
 }
