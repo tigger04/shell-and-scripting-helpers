@@ -1221,7 +1221,7 @@ rm_if() {
 }
 
 mv_bak_if() {
-   # Move a file to a .bak, stamping it with an index if the .bak file already exists
+   # Move a file to a .bak, if it exists, stamping it with an index if the .bak file already exists
    local file="$1"
    local bak_file="$file.bak"
    local index=1
@@ -1249,6 +1249,7 @@ mv_bak() {
       mv_bak_if "$1"
    else
       warn "[mv_bak] file not found: $1"
+      return 1
    fi
 }
 
