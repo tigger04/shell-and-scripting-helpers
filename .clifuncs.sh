@@ -362,3 +362,13 @@ pandoc() {
         show_cmd_execute command pandoc --defaults=defaults "$@"
     fi
 }
+
+teecopy() {
+   # copy stdin to clipboard and to stdout
+   if [[ $_os == Darwin ]]; then
+      tee >(pbcopy)
+   else
+      tee >(xclip -selection clipboard)
+   fi
+
+}
