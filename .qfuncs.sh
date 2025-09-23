@@ -760,8 +760,8 @@ fi
 alias ggrep=grep
 
 path_stem_ext() {
-   # usage: path_stem PATH [STEM_VAR] [EXT_VAR]
-   # result in $REPLY_STEM and $REPLY_EXT and STEM_VAR, EXT_VAR if specified
+   # usage: path_stem PATH [stem_var] [ext_var]
+   # result in $REPLY_STEM and $REPLY_EXT and $stem_var, $ext_var if specified
 
    local base
    qbase "$1" base
