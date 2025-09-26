@@ -251,10 +251,23 @@ alias c=code
 alias status='git status'
 alias s='git status'
 alias checkout='git checkout'
-alias clone='git clone'
+# alias clone='git clone'
 alias push='git push'
 alias fetch='git fetch'
 # NB 'add' is a script in ~/bin
+
+clone () {
+   # invoke git clone or gh repo clone depending on whether the arg is a url or
+   # a user/repo string. Checks all args and if any is a url, uses git clone
+   for arg in "$@"; do
+       if [[ $arg =~ : ]]; then
+      #  we have a url
+           show_cmd_execute  git clone --recurse-submodules "$@"
+           return
+       fi
+   done
+   show_cmd_execute gh repo clone "$@" -- --recurse-submodules
+}
 
 commit() {
 	local fallback_commit_message="$USER@$HOSTNAME:cli"
