@@ -1046,6 +1046,20 @@ is_my_git_repo() {
    fi
 }
 
+get_git_repo_name() {
+   # usage: get_git_repo_name PATH [VAR]
+   # result in $REPLY or VAR if specified
+   if [ -f "$1/.git/config" ]; then
+      read -r REPLY < <(grep -E 'url = ' "$1/.git/config" | head -n1 | sed -E 's/.*\/(.*)(\.git)?$/\1/')
+      if [ -n "$2" ]; then
+         local -n ptr=${2}
+         ptr="$REPLY"
+      fi
+   else
+      return 1
+   fi
+}
+
 color_timestamps() {
    # this function colors timestamps in the output DEPRECATED
 
