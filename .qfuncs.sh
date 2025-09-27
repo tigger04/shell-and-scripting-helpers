@@ -987,7 +987,7 @@ get_current_mac_address() {
    # usage: get_current_mac_address [VAR]
    # result in VAR or REPLY
 
-   read REPLY < <(ifconfig en0 ether | grep -Eo '([a-f0-9]{2}:){5}[a-f0-9]{2}')
+   read -r REPLY < <(ifconfig en0 ether | grep -Eo '([a-f0-9]{2}:){5}[a-f0-9]{2}')
 
    if [ $# -gt 0 ]; then
       local -n ptr=${1}
@@ -1029,7 +1029,8 @@ lsd_maybe() {
 }
 
 is_my_git_repo() {
-   # this function checks if a git repo belongs to me
+   # usage: is_my_git_repo PATH
+   # returns 0 if PATH is a git repo owned by the user
 
    if ! [ -d "$1" ]; then
       return 3
@@ -1049,8 +1050,15 @@ is_my_git_repo() {
 get_git_repo_name() {
    # usage: get_git_repo_name PATH [VAR]
    # result in $REPLY or VAR if specified
+   local url_line
    if [ -f "$1/.git/config" ]; then
-      read -r REPLY < <(grep -E 'url = ' "$1/.git/config" | head -n1 | sed -E 's/.*\/(.*)(\.git)?$/\1/')
+      read -r url_line < <(grep -E 'url[[:space:]]*=[[:space:]]*' "$1/.git/config" | head -n1)
+      if [[ $url_line =~ /([^/]+)\.git$ ]]; then
+         REPLY="${BASH_REMATCH[1]}"
+      else
+         REPLY=""
+      fi
+
       if [ -n "$2" ]; then
          local -n ptr=${2}
          ptr="$REPLY"
