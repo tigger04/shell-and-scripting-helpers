@@ -1476,3 +1476,27 @@ format_manpage() {
       prev_line="$clean_line"
    done
 }
+
+free_disk_space_human() {
+   # usage: free_disk_space_human [PATH] [VAR]
+   # result in VAR or REPLY
+   local path="${1:-.}"
+   read -r REPLY < <(df -h "$path" | awk 'NR==2 {print $4}')
+
+   if [ -n "$2" ]; then
+      local -n ptr=${2}
+      ptr="$REPLY"
+   fi
+}
+
+free_disk_space_kb() {
+   # usage: free_disk_space_human [PATH] [VAR]
+   # result in VAR or REPLY
+   local path="${1:-.}"
+   read -r REPLY < <(df -h "$path" | awk 'NR==2 {print $4}')
+
+   if [ -n "$2" ]; then
+      local -n ptr=${2}
+      ptr="$REPLY"
+   fi
+}

@@ -168,20 +168,31 @@ mkcd() {
 }
 
 trash() {
-   if [[ $1 =~ ^--?h(elp)?$ ]]; then
-      cat <<EOM
-Wrapper for gtrash.
-Use: trash [FILE]    # to move FILE to the trash.
-Or   trash           # with no args to list trashed files.
-EOM
-      return 0
+   command trash -v "$@"
+}
+
+empty-trash() {
+   echo -ne "$dim"
+   df -h .
+   echo -ne "$ansi_off"
+   # local freespace
+   # free_disk_space_human . freespace
+   # # print free space in dim blue text
+   # printf '%s%s%s%s\n' "$dim" "$freespace" " free (before)" "$ansi_off"
+
+   if [[ $_os == Darwin ]]; then
+      show_cmd_execute /opt/homebrew/bin/trash -ey
+   else
+      if [ $# -eq 0 ]; then
+         yes | command trash-empty
+      else
+         show_cmd_execute command trash-empty "$@"
+      fi
    fi
 
-   if [ $# -gt 0 ]; then
-      show_cmd_execute gtrash put -v "$@"
-   else
-      show_cmd_execute gtrash find
-   fi
+   echo -ne "$dim"
+   df -h .
+   echo -ne "$ansi_off"
 }
 
 rgg() {
