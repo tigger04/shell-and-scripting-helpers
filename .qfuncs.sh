@@ -1243,23 +1243,18 @@ rm_if() {
 }
 
 mv_bak_if() {
-   # Move a file to a .bak, if it exists, stamping it with an index if the .bak file already exists
    local file="$1"
    local bak_file="$file.bak"
    local index=1
 
    while [[ -e "$bak_file" ]]; do
-      index=$((index + 1))
-      bak_file="${file%.bak}.$index.bak"
+      bak_file="${file}.$index.bak"
+      ((index++))
    done
-
-   if [ -e "$bak_file" ]; then
-      die "This should never happen: $bak_file already exists"
-   fi
 
    if [ -e "$file" ]; then
       warn "$file -> $bak_file"
-      mv -f "$file" "$bak_file"
+      mv -f "$file" "$bak_file" || die "Failed to create backup: $bak_file"
       REPLY="$bak_file"
    else
       unset REPLY
