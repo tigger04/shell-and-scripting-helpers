@@ -519,10 +519,13 @@ show_cmd_execute() {
    echo "⚡️ $*" >/dev/stderr
    "$@"
 }
+show_cmd () { # wrapper
+   show_cmd_execute "$@"
+}
 
 show_cmd_execute_oneline() {
    echo -n "⚡️ $*" >/dev/stderr
-   "$@" | oneline 2>&1
+   "$@" 2>&1 | oneline
 }
 
 alias scx=show_cmd_execute
@@ -547,7 +550,10 @@ confirm_cmd_execute() {
       return $rc
    fi
 }
-alias ccx=confirm_cmd_execute
+
+confirm_cmd () { # wrapper
+   confirm_cmd_execute "$@"
+}
 
 fullpath() {
    # Get the absolute, normalized path without external commands or subshells
