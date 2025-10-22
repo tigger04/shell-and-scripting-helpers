@@ -387,13 +387,15 @@ dll() {
 }
 
 pandoc() {
-   if [[ $* =~ \<--?d(efaults)?\> ]]; then
-      # If user explicitly specifies --defaults, don't interfere
-      show_cmd_execute command pandoc "$@"
-   else
-      # Otherwise, use our common defaults
-      show_cmd_execute command pandoc --defaults=defaults "$@"
-   fi
+   warn "this wrapper script is deprecated"
+   command pandoc "$@"
+   # if [[ $* =~ \<--?d(efaults)?\> ]]; then
+   #    # If user explicitly specifies --defaults, don't interfere
+   #    show_cmd_execute command pandoc "$@"
+   # else
+   #    # Otherwise, use our common defaults
+   #    show_cmd_execute command pandoc --defaults=defaults "$@"
+   # fi
 }
 
 teecopy() {
