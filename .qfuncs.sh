@@ -1249,6 +1249,9 @@ rm_if() {
 }
 
 mv_bak_if() {
+   # USAGE: mv_bak_if FILENAME
+   # if FILENAME exists, move it to FILENAME.bak or FILENAME.N.bak
+   # puts the backup filename in REPLY
    local file="$1"
    local bak_file="$file.bak"
    local index=1
