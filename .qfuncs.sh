@@ -519,7 +519,7 @@ show_cmd_execute() {
    echo "⚡️ $*" >/dev/stderr
    "$@"
 }
-show_cmd () { # wrapper
+show_cmd() { # wrapper
    show_cmd_execute "$@"
 }
 
@@ -551,7 +551,7 @@ confirm_cmd_execute() {
    fi
 }
 
-confirm_cmd () { # wrapper
+confirm_cmd() { # wrapper
    confirm_cmd_execute "$@"
 }
 
@@ -1123,11 +1123,17 @@ gdate() {
 
 azonly() {
    # Reads STDIN replacing all non-az characters with REPL_CHAR
-   # usage: azonly [REPL_CHAR] [TEXT]
+   # usage: azonly [-REPL_CHAR] [TEXT]
    # reads STDIN unless TEXT provided
+   # defaults '_' as REPL_CHAR unless -REPL_CHAR provided'
    # output to STDOUT
 
-   local repl="${1:-_}"
+   local repl="_"
+   if [[ $1 =~ ^-(.)$ ]]; then
+      repl="${BASH_REMATCH[1]}"
+      shift
+   fi
+
    local az_pattern='[a-zA-Z0-9\._-]'
    local azonly_line
 
@@ -1161,8 +1167,7 @@ azonly() {
       done
    }
 
-   if [ -n "$2" ]; then
-      shift
+   if [ $# -gt 0 ]; then
       echo "$*" | az_sanitize
    else
       az_sanitize
