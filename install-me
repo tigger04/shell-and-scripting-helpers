@@ -12,13 +12,23 @@ case "$OS" in
         STAT_CMD="gstat"
         ;;
     Linux)
-        PACKAGE_MANAGER="apt"
-        INSTALL_CMD="sudo apt update && sudo apt install -y"
-        STAT_CMD="stat"
-        echo "⚠️  Note: This installer assumes Debian/Ubuntu (apt). If you're using a different"
-        echo "   Linux distribution, please install the dependencies manually using your"
-        echo "   package manager (yum, pacman, zypper, etc.)"
-        echo
+        # Detect Linux package manager
+        if command -v dnf >/dev/null 2>&1; then
+            PACKAGE_MANAGER="dnf"
+            INSTALL_CMD="sudo dnf install -y"
+            STAT_CMD="stat"
+        elif command -v apt >/dev/null 2>&1; then
+            PACKAGE_MANAGER="apt"
+            INSTALL_CMD="sudo apt update && sudo apt install -y"
+            STAT_CMD="stat"
+        else
+            PACKAGE_MANAGER="unknown"
+            STAT_CMD="stat"
+            echo "⚠️  Note: Could not detect apt or dnf. If you're using a different"
+            echo "   Linux distribution, please install the dependencies manually using your"
+            echo "   package manager (yum, pacman, zypper, etc.)"
+            echo
+        fi
         ;;
     *)
         echo "⛔️ Unsupported operating system: $OS"
@@ -55,8 +65,15 @@ package_installed() {
         # Use brew list to check if package is installed
         brew list --formula -1 2>/dev/null | grep -q "^${package}$"
     elif [[ "$OS" == "Linux" ]]; then
-        # Use dpkg-query to check if package is installed
-        dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"
+        if [[ "$PACKAGE_MANAGER" == "apt" ]]; then
+            # Use dpkg-query to check if package is installed
+            dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "install ok installed"
+        elif [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
+            # Use dnf list to check if package is installed
+            dnf list installed "$package" >/dev/null 2>&1
+        else
+            return 1
+        fi
     fi
 }
 
@@ -83,8 +100,11 @@ prompt_install() {
                     return 1
                 fi
             elif [[ "$OS" == "Linux" ]]; then
-                if ! command_exists apt; then
-                    echo "⚠️  apt not found. Please install $package manually using your package manager."
+                if [[ "$PACKAGE_MANAGER" == "unknown" ]]; then
+                    echo "⚠️  Could not detect package manager. Please install $package manually."
+                    return 1
+                elif ! command_exists "$PACKAGE_MANAGER"; then
+                    echo "⚠️  $PACKAGE_MANAGER not found. Please install $package manually using your package manager."
                     return 1
                 fi
             fi
@@ -111,31 +131,34 @@ echo "🔍 Checking dependencies..."
 echo
 
 # Define dependencies with package names for each platform
+# Format: "tool":"brew_package:apt_package:dnf_package|Description"
 declare -A dependencies=(
-    ["rg"]="ripgrep:ripgrep|Fast line-oriented search tool (used by rgg, rgw, rw functions)"
-    ["fd"]="fd:fd-find|Fast alternative to find (used by fdw, fdk, fdkcp functions)"
-    ["bat"]="bat:bat|Cat clone with syntax highlighting (used by help function)"
-    ["tldr"]="tldr:tldr|Simplified and community-driven man pages (used by help function)"
-    ["yt-dlp"]="yt-dlp:yt-dlp|YouTube downloader (used by yt_get_title function)"
-    ["lsd"]="lsd:lsd|Modern ls replacement with colors and icons (optional, used by lsd_maybe)"
-    ["trash"]="trash:trash-cli|Safe file deletion tool (used by trash function)"
-    ["fzf"]="fzf:fzf|General-purpose command-line fuzzy finder (mentioned as recommended tool)"
+    ["rg"]="ripgrep:ripgrep:ripgrep|Fast line-oriented search tool (used by rgg, rgw, rw functions)"
+    ["fd"]="fd:fd-find:fd-find|Fast alternative to find (used by fdw, fdk, fdkcp functions)"
+    ["bat"]="bat:bat:bat|Cat clone with syntax highlighting (used by help function)"
+    ["tldr"]="tldr:tldr:tldr|Simplified and community-driven man pages (used by help function)"
+    ["yt-dlp"]="yt-dlp:yt-dlp:yt-dlp|YouTube downloader (used by yt_get_title function)"
+    ["lsd"]="lsd:lsd:lsd|Modern ls replacement with colors and icons (optional, used by lsd_maybe)"
+    ["trash"]="trash:trash-cli:trash-cli|Safe file deletion tool (used by trash function)"
+    ["fzf"]="fzf:fzf:fzf|General-purpose command-line fuzzy finder (mentioned as recommended tool)"
 )
 
 # Add platform-specific dependencies
 if [[ "$OS" == "Darwin" ]]; then
-    dependencies["gstat"]="coreutils:coreutils|GNU core utilities including gstat (used by git status functions)"
+    dependencies["gstat"]="coreutils:coreutils:coreutils|GNU core utilities including gstat (used by git status functions)"
 fi
 
 # Check each dependency
 missing_deps=()
 for tool in "${!dependencies[@]}"; do
-    IFS=':' read -r brew_package apt_package <<< "${dependencies[$tool]%%|*}"
+    IFS=':' read -r brew_package apt_package dnf_package <<< "${dependencies[$tool]%%|*}"
     description="${dependencies[$tool]#*|}"
     
     # Determine which package name to use for this platform
     if [[ "$OS" == "Darwin" ]]; then
         package_name="$brew_package"
+    elif [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
+        package_name="$dnf_package"
     else
         package_name="$apt_package"
     fi
@@ -160,12 +183,14 @@ if [ ${#missing_deps[@]} -gt 0 ]; then
     echo
     
     for tool in "${missing_deps[@]}"; do
-        IFS=':' read -r brew_package apt_package <<< "${dependencies[$tool]%%|*}"
+        IFS=':' read -r brew_package apt_package dnf_package <<< "${dependencies[$tool]%%|*}"
         description="${dependencies[$tool]#*|}"
         
         # Determine which package name to use for this platform
         if [[ "$OS" == "Darwin" ]]; then
             package_name="$brew_package"
+        elif [[ "$PACKAGE_MANAGER" == "dnf" ]]; then
+            package_name="$dnf_package"
         else
             package_name="$apt_package"
         fi
