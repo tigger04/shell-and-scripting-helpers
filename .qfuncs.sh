@@ -1128,7 +1128,7 @@ azonly() {
    # defaults '_' as REPL_CHAR unless -REPL_CHAR provided'
    # output to STDOUT
 
-   local repl="_"
+   local repl="-"
    if [[ $1 =~ ^-(.)$ ]]; then
       repl="${BASH_REMATCH[1]}"
       shift
