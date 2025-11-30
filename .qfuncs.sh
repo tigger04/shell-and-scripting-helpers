@@ -1325,7 +1325,7 @@ clean_up_plain_text() {
          rm -f "$REPLY"
       fi
    else
-      show_cmd_execute gsed "${options[@]}"
+      gsed "${options[@]}"
    fi
 }
 
