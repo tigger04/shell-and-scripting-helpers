@@ -1123,19 +1123,35 @@ gdate() {
 
 azonly() {
    # Reads STDIN replacing all non-az characters with REPL_CHAR
-   # usage: azonly [-REPL_CHAR] [TEXT]
+   # usage: azonly [-l|--lowercase] [-REPL_CHAR] [TEXT]
    # reads STDIN unless TEXT provided
    # defaults '_' as REPL_CHAR unless -REPL_CHAR provided'
    # output to STDOUT
 
    local repl="-"
-   if [[ $1 =~ ^-(.)$ ]]; then
-      repl="${BASH_REMATCH[1]}"
-      shift
-   fi
-
+   local lowercase=false
+   local arg_text=""
    local az_pattern='[a-zA-Z0-9\._-]'
    local azonly_line
+
+   while [[ $1 =~ ^- ]]; do
+      case $1 in
+      -l | --lowercase)
+         lowercase=true
+         shift
+         ;;
+      -?)
+         repl="${1:1:1}"
+         shift
+         ;;
+      *)
+         break
+         ;;
+      esac
+   done
+
+   # Capture remaining arguments as text
+   arg_text="$*"
 
    az_sanitize() {
       while read -r azonly_line; do
@@ -1163,12 +1179,16 @@ azonly() {
 
          done
 
-         echo "${encoded}"
+         if [ "$lowercase" = true ]; then
+            echo "${encoded,,}"
+         else
+            echo "${encoded}"
+         fi
       done
    }
 
-   if [ $# -gt 0 ]; then
-      echo "$*" | az_sanitize
+   if [ -n "$arg_text" ]; then
+      echo "$arg_text" | az_sanitize
    else
       az_sanitize
    fi
@@ -1176,10 +1196,10 @@ azonly() {
 
 azrandomize() {
    # usage: azrandomize [TEXT]
-   # Reads STDIN (unless TEXT provided), and randomizes 
+   # Reads STDIN (unless TEXT provided), and randomizes
    # capitalization, punctuation and spacing.
    # output to STDOUT
-   # 
+   #
    # Example input/outputs:
    # input: "the quick brown fox jumps over the lazy dog"
    # potential outputs (randomized):
@@ -1187,12 +1207,12 @@ azrandomize() {
    # "The Quick Brown Fox Jumps Over The Lazy Dog!"
    # "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG;"
    # "The  Quick brown  Fox jumps  Over the lazy dog:"
-   # 
+   #
    # rules:
    # - for the purposes of this function, INPUT punctuation is defined as any of: .,;:!?()[]{}
    # - randomly capitalize or make lowercase the first letter of each word, OR randomly convert each sentence (defined as the string between each punctuation mark) to all uppercase or all lowercase
    # - randomly determine spacing between words (1 or 2 spaces)
-   # - randomly replace every punctuation mark: 
+   # - randomly replace every punctuation mark:
    #   with one of: .,;:!
 
    local input
@@ -1201,21 +1221,21 @@ azrandomize() {
    else
       input=$(cat)
    fi
-   
+
    # Array of replacement punctuation marks
    local punct=('.' ',' ';' ':' '!')
-   
+
    # Pattern for matching punctuation - ] must come first in bracket expression
    local punct_pattern='[].,;:!?(){}[]'
-   
+
    # Step 1: Split by sentences (punctuation boundaries) and process each
    local output=""
    local current_segment=""
    local i char
-   
-   for ((i=0; i<${#input}; i++)); do
+
+   for ((i = 0; i < ${#input}; i++)); do
       char="${input:$i:1}"
-      
+
       # Check if character is punctuation
       if [[ $char =~ $punct_pattern ]]; then
          # Process the accumulated segment before adding punctuation
@@ -1233,31 +1253,31 @@ azrandomize() {
          fi
          # Add 1 or 2 spaces randomly
          local spaces=$((RANDOM % 2 + 1))
-         for ((k=0; k<spaces; k++)); do
+         for ((k = 0; k < spaces; k++)); do
             output+=" "
          done
       else
          current_segment+="$char"
       fi
    done
-   
+
    # Process any remaining segment
    if [ -n "$current_segment" ]; then
       output+="$(process_segment "$current_segment")"
    fi
-   
+
    echo "$output"
 }
 
 process_segment() {
    # Helper function to process a text segment (word between spaces/punctuation)
    local segment="$1"
-   
+
    # Segments now don't contain spaces, so just apply capitalization
    # Randomly decide: 0 = per-word randomization, 1-3 = all uppercase, 4-6 = all lowercase, 7-10 = per-word
    # This gives us: 25% uppercase, 25% lowercase, 50% per-word randomization
    local rand=$((RANDOM % 12))
-   
+
    if [ $rand -lt 3 ]; then
       # All uppercase (25%)
       echo -n "${segment^^}"
