@@ -1631,3 +1631,11 @@ free_disk_space_kb() {
       ptr="$REPLY"
    fi
 }
+
+ggrep() {
+   if [[ "$_os" == "Darwin" ]]; then
+      command ggrep "$@"
+   else
+      command grep "$@"
+   fi
+}
