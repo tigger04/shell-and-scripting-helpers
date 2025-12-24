@@ -170,6 +170,7 @@ mkcd() {
 trash() {
    while [ $# -gt 0 ]; do
       command trash -v "$@"
+      shift
    done
 }
 
