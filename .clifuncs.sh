@@ -168,7 +168,9 @@ mkcd() {
 }
 
 trash() {
-   command trash -v "$@"
+   while [ $# -gt 0 ]; do
+      command trash -v "$@"
+   done
 }
 
 empty-trash() {
