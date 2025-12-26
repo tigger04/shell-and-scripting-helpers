@@ -1131,6 +1131,12 @@ azonly() {
 
    while [[ $1 =~ ^- ]]; do
       case $1 in
+      -h | --help)
+         echo "Usage: azonly [--lowercase] [-REPL_CHAR] [TEXT]"
+         echo "Reads TEXT or STDIN replacing all non-az characters with REPL_CHAR."
+         echo "Defaults to '-' as REPL_CHAR unless -REPL_CHAR provided."
+         return 0
+         ;;
       -l | --lowercase)
          lowercase=true
          shift
@@ -1371,22 +1377,26 @@ rm_if() {
 }
 
 mv_bak_if() {
-   # USAGE: mv_bak_if FILENAME
-   # if FILENAME exists, move it to FILENAME.bak or FILENAME.N.bak
-   # puts the backup filename in REPLY
-   local file="$1"
-   local bak_file="$file.bak"
+   # USAGE: mv_bak_if ITEM
+   # if ITEM exists, move it to ITEM.bak or ITEM.N.bak
+   # puts the backup item in REPLY
+
+   if [ $# -eq 0 ]; then
+      die "mv_bak_if: no file specified"
+   fi
+   local src="${1%/}" #  remove trailing '/' in case it's a directory!
+   local bak_target="$src.bak"
    local index=1
 
-   while [[ -e "$bak_file" ]]; do
-      bak_file="${file}.$index.bak"
+   while [[ -e "$bak_target" ]]; do
+      bak_target="${src}.$index.bak"
       ((index++))
    done
 
-   if [ -e "$file" ]; then
-      warn "$file -> $bak_file"
-      mv -f "$file" "$bak_file" || die "Failed to create backup: $bak_file"
-      REPLY="$bak_file"
+   if [ -e "$src" ]; then
+      warn "$src -> $bak_target"
+      mv -f "$src" "$bak_target" || die "Failed to create backup: $bak_target"
+      REPLY="$bak_target"
    else
       unset REPLY
    fi
