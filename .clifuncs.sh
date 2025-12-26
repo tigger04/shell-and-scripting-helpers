@@ -37,7 +37,7 @@ tigger_dev_set_git_status_icon() {
       # git_status_icon="🛜🌀📶🆗"
       git_status_icon="🌀"
    else
-      git_status_icon=""
+      git_status_icon='$'
       return
    fi
 
