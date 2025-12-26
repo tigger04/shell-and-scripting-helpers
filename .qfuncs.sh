@@ -655,11 +655,6 @@ fullpath() {
    fi
 }
 
-q_path() {
-   deprecated 5
-   fullpath "$@"
-}
-
 nicepath() {
    # usage: nicepath PATH [VAR]
    # result in $REPLY and VAR if specified
