@@ -1128,6 +1128,7 @@ azonly() {
    local arg_text=""
    local az_pattern='[a-zA-Z0-9\._-]'
    local azonly_line
+   local max_length=0
 
    while [[ $1 =~ ^- ]]; do
       case $1 in
@@ -1141,12 +1142,14 @@ azonly() {
          lowercase=true
          shift
          ;;
-      -?)
-         repl="${1:1:1}"
+      # numeric:
+      -[0-9]*)
+         local max_length=${1#-}
          shift
          ;;
       *)
-         break
+         repl="${1:1:1}"
+         shift
          ;;
       esac
    done
@@ -1155,37 +1158,56 @@ azonly() {
    arg_text="$*"
 
    az_sanitize() {
-      while read -r azonly_line; do
+      local input_text
+      input_text=$(cat)
+      
+      # Trim whitespace from beginning and end
+      input_text="${input_text#"${input_text%%[![:space:]]*}"}"
+      input_text="${input_text%"${input_text##*[![:space:]]}"}"
+      
+      local strlen=${#input_text}
+      local encoded=""
+      local pos c o
+      local output_length=0
 
-         local strlen=${#azonly_line}
-         local encoded=""
-         local pos c o
+      for ((pos = 0; pos < strlen; pos++)); do
 
-         for ((pos = 0; pos < strlen; pos++)); do
-
-            c=${azonly_line:$pos:1}
-
-            #shellcheck disable=SC2254
-            case "$c" in
-
-            $az_pattern)
-               o="${c}"
-               ;;
-            *)
-               printf -v o '%s' "$repl"
-               ;;
-            esac
-
-            encoded+="${o}"
-
-         done
-
-         if [ "$lowercase" = true ]; then
-            echo "${encoded,,}"
-         else
-            echo "${encoded}"
+         # Stop if we've reached max_length in output
+         if [ "$max_length" -gt 0 ] && [ "$output_length" -ge "$max_length" ]; then
+            break
          fi
+
+         c=${input_text:$pos:1}
+
+         #shellcheck disable=SC2254
+         case "$c" in
+
+         $az_pattern)
+            o="${c}"
+            ((output_length++))
+            ;;
+         [[:space:]])
+            o=""
+            ;;
+         *)
+            printf -v o '%s' "$repl"
+            ((output_length++))
+            ;;
+         esac
+
+         encoded+="${o}"
+
       done
+
+      # Trim replacement characters from beginning and end
+      encoded="${encoded#"${encoded%%[!${repl}]*}"}"
+      encoded="${encoded%"${encoded##*[!${repl}]}"}"
+
+      if [ "$lowercase" = true ]; then
+         echo "${encoded,,}"
+      else
+         echo "${encoded}"
+      fi
    }
 
    if [ -n "$arg_text" ]; then
