@@ -311,8 +311,9 @@ pull() {
       # show_cmd_execute git pull --recurse-submodules
       # popd || return
    else
-      show_cmd_execute git pull origin master --recurse-submodules
-      show_cmd_execute git submodule update --remote
+      git pull
+      # show_cmd_execute git pull origin master --recurse-submodules
+      # show_cmd_execute git submodule update --remote
    fi
 }
 
