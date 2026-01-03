@@ -168,8 +168,13 @@ mkcd() {
 }
 
 trash() {
+   # local trash_bin
+   # read -r trash_bin < <(which trash)
+   # [ -n "$trash_bin" ] || return 1
+
    while [ $# -gt 0 ]; do
-      command trash -v "$@"
+      # show_cmd_execute "$trash_bin" -v "$1"
+      command trash -v "$1"
       shift
    done
 }
