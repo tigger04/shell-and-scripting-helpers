@@ -28,6 +28,10 @@ export url_regex='(https?|ftp|file):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-
 export httpregex="$url_regex"
 export domain_regex='[a-zA-Z0-9-]{1,63}(\.[a-zA-Z0-9-]{1,63})+'
 export youtube_id_regex='\<[a-zA-Z0-9_-]{11}\>'
+export ip4_regex='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$'
+export ip6_regex='^[0-9a-fA-F]{0,4}(:[0-9a-fA-F]{0,4}){2,7}$'
+export ip46_regex='^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F]{0,4}(:[0-9a-fA-F]{0,4}){2,7}$'
+
 
 ## other global vars ##
 
