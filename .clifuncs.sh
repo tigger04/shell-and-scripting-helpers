@@ -172,6 +172,11 @@ trash() {
    # read -r trash_bin < <(which trash)
    # [ -n "$trash_bin" ] || return 1
 
+   if [[ $1 =~ ^- ]]; then
+      confirm_cmd_execute rm "$@"
+      return $?
+   fi
+
    while [ $# -gt 0 ]; do
       # show_cmd_execute "$trash_bin" -v "$1"
       command trash -v "$1"
