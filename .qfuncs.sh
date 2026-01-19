@@ -1124,7 +1124,7 @@ azonly() {
    # Reads STDIN replacing all non-az characters with REPL_CHAR
    # usage: azonly [-l|--lowercase] [-REPL_CHAR] [TEXT]
    # reads STDIN unless TEXT provided
-   # defaults '_' as REPL_CHAR unless -REPL_CHAR provided'
+   # defaults '-' as REPL_CHAR unless -REPL_CHAR provided'
    # output to STDOUT
 
    local repl="-"
@@ -1189,9 +1189,6 @@ azonly() {
          $az_pattern)
             o="${c}"
             ((output_length++))
-            ;;
-         [[:space:]])
-            o=""
             ;;
          *)
             printf -v o '%s' "$repl"
