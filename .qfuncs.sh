@@ -708,18 +708,28 @@ timestamp() {
    #    assign timestamp to VAR if specified, otherwise echo it to STDOUT.
    #    Timestamp assigned to TIMESTAMP in either case
    # USAGE:
-   #    timestamp [-q] [VAR]
+   #    timestamp [-q] [-t] [VAR]
    # OPTION:
    #    -q:  do not echo, just assign
+   #    -t:  output time only (HH:MM:SS), not date
 
    local my_timestamp
-   #shellcheck disable=SC2034
-   printf -v my_timestamp '%(%F_%H:%M:%S)T' -1
    local quiet=false
+   local time_only=false
 
-   if [[ "$1" == "-q" ]]; then
-      quiet=true
-      shift
+   while [[ "$1" == -* ]]; do
+      case "$1" in
+         -q) quiet=true; shift ;;
+         -t) time_only=true; shift ;;
+         *) break ;;
+      esac
+   done
+
+   if $time_only; then
+      printf -v my_timestamp '%(%H:%M:%S)T' -1
+   else
+      #shellcheck disable=SC2034
+      printf -v my_timestamp '%(%F_%H:%M:%S)T' -1
    fi
 
    # shellcheck disable=SC2034
