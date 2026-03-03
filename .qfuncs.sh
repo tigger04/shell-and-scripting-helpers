@@ -32,7 +32,6 @@ export ip4_regex='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[
 export ip6_regex='^[0-9a-fA-F]{0,4}(:[0-9a-fA-F]{0,4}){2,7}$'
 export ip46_regex='^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F]{0,4}(:[0-9a-fA-F]{0,4}){2,7}$'
 
-
 ## other global vars ##
 
 imgext=(gif jpg jpe jpeg png webp heic avif bmp tif tiff)
@@ -719,9 +718,15 @@ timestamp() {
 
    while [[ "$1" == -* ]]; do
       case "$1" in
-         -q) quiet=true; shift ;;
-         -t) time_only=true; shift ;;
-         *) break ;;
+      -q)
+         quiet=true
+         shift
+         ;;
+      -t)
+         time_only=true
+         shift
+         ;;
+      *) break ;;
       esac
    done
 
@@ -1174,11 +1179,11 @@ azonly() {
    az_sanitize() {
       local input_text
       input_text=$(cat)
-      
+
       # Trim whitespace from beginning and end
       input_text="${input_text#"${input_text%%[![:space:]]*}"}"
       input_text="${input_text%"${input_text##*[![:space:]]}"}"
-      
+
       local strlen=${#input_text}
       local encoded=""
       local pos c o
