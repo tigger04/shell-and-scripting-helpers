@@ -730,22 +730,21 @@ timestamp() {
       esac
    done
 
-   if $time_only; then
-      printf -v my_timestamp '%(%H:%M:%S)T' -1
-   else
-      #shellcheck disable=SC2034
-      printf -v my_timestamp '%(%F_%H:%M:%S)T' -1
-   fi
+   printf -v my_timestamp '%(%H:%M:%S)T' -1
+   printf -v my_date_time_stamp '%(%F_%H:%M:%S)T' -1
 
    # shellcheck disable=SC2034
-   TIMESTAMP="$my_timestamp"
+   TIMESTAMP="$my_date_time_stamp"
+   if $time_only; then
+      TIMESTAMP="$my_timestamp"
+   fi
 
    if [ $# -gt 0 ]; then
       local -n ptr=${1}
-      ptr="$my_timestamp"
+      ptr="$TIMESTAMP"
    fi
 
-   $quiet || echo "$my_timestamp"
+   $quiet || echo "$TIMESTAMP"
 }
 
 datestamp() {
