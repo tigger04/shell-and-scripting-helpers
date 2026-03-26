@@ -1202,11 +1202,11 @@ azonly() {
 
          $az_pattern)
             o="${c}"
-            ((output_length++))
+            ((++output_length))
             ;;
          *)
             printf -v o '%s' "$repl"
-            ((output_length++))
+            ((++output_length))
             ;;
          esac
 
