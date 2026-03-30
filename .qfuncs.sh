@@ -820,19 +820,19 @@ caller() {
    REPLY="$caller_var"
 }
 
-sanitize() {
-   # usage: sanitize STRING [TARGET_VAR]
-   # result in $REPLY or $TARGET_VAR if specified
+# sanitize() {
+#    # usage: sanitize STRING [TARGET_VAR]
+#    # result in $REPLY or $TARGET_VAR if specified
 
-   REPLY="${1//[^[:alnum:]]/_}"
+#    REPLY="${1//[^[:alnum:]]/_}"
 
-   if [ -n "$2" ]; then
-      local -n ptr=${2}
-      ptr="$REPLY"
-   else
-      echo "$REPLY"
-   fi
-}
+#    if [ -n "$2" ]; then
+#       local -n ptr=${2}
+#       ptr="$REPLY"
+#    else
+#       echo "$REPLY"
+#    fi
+# }
 
 qpager() {
    local qpager=less
