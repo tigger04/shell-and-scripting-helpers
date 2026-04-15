@@ -91,6 +91,10 @@ announce() {
    } >/dev/stderr
 }
 
+ok(){
+   echo -e "✅ $*" >&2
+}
+
 info() {
    # USAGE: info MESSAGE
    echo -e "🚹 $*" >&2
