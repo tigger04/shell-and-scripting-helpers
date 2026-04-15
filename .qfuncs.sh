@@ -120,6 +120,27 @@ filename() {
    printf "📃 %s\n" "$@"
 }
 
+echo_indented(){
+   # USAGE:
+   #    `echo_indented -4 Hello World` prints `    Hello World`
+   #    `echo_indented Hello World` prints `   Hello World` (3 space default)
+   #    `ECHO_INDENT=5 echo_indented Hello World` prints `     Hello World` (5 spaces)
+   
+   local indent_level=3
+   local message
+   
+   # check for explicit indent level as first arg
+   if [[ $1 =~ ^-[0-9]+$ ]]; then
+      indent_level="${1#-}"
+      shift
+   elif [[ -n $ECHO_INDENT ]]; then
+      indent_level="$ECHO_INDENT"
+   fi
+   
+   message="$*"
+   printf "%${indent_level}s%s\n" "" "$message"
+}
+
 qbase() {
    # get basename and dirname of a file without unnecessary subshell
    # usage: qbase PATH [VAR] [VAR_DIR]
