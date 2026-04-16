@@ -1,4 +1,5 @@
 . ~/.qfuncs.sh
+PATH="$PATH":~/code/personal/samizdat/scripts:/opt/samizdat/scripts
 
 [[ "$user_interactive" == "true" ]] || return
 
