@@ -91,7 +91,7 @@ announce() {
    } >/dev/stderr
 }
 
-ok(){
+ok() {
    echo -e "✅ $*" >&2
 }
 
@@ -120,15 +120,15 @@ filename() {
    printf "📃 %s\n" "$@"
 }
 
-echo_indented(){
+echo_indented() {
    # USAGE:
    #    `echo_indented -4 Hello World` prints `    Hello World`
    #    `echo_indented Hello World` prints `   Hello World` (3 space default)
    #    `ECHO_INDENT=5 echo_indented Hello World` prints `     Hello World` (5 spaces)
-   
+
    local indent_level=3
    local message
-   
+
    # check for explicit indent level as first arg
    if [[ $1 =~ ^-[0-9]+$ ]]; then
       indent_level="${1#-}"
@@ -136,9 +136,59 @@ echo_indented(){
    elif [[ -n $ECHO_INDENT ]]; then
       indent_level="$ECHO_INDENT"
    fi
-   
+
    message="$*"
    printf "%${indent_level}s%s\n" "" "$message"
+}
+
+slug() {
+   # USAGE: slug [REPL] STRING [STRING...]
+   # e.g.
+   #      slug "Hello World!" -> hello-world
+   #      slug _ "Hello World!" -> hello_world
+   #      slug - "Hello World!" -> hello-world
+   #      slug " Hello" "World!" -> hello-world
+   #      slug _ "Hello!!!!! World!!!!!" -> hello_world"
+   # REPL char: only - or _ allowed, defaults to -
+   # REPL char trimmed from start and end
+   # REPL char is not repeated
+   # Result in REPLY
+
+   local repl text slug lastchar
+
+   # Check if first arg is a replacement char
+   if [[ $1 =~ ^[-_]$ ]]; then
+      repl="$1"
+      shift
+   else
+      repl='-'
+   fi
+
+   [ $# -ge 1 ] || return 1
+
+   text="$*"
+   lastchar=""
+
+   for ((pos = 0; pos < ${#text}; pos++)); do
+      char="${text:$pos:1}"
+      if [[ $char =~ ^[a-zA-Z0-9]$ ]]; then
+         slug+="${char,}"
+         lastchar="$char"
+      else
+         if [[ $lastchar != "$repl" && -n $slug ]]; then
+            slug+="$repl"
+            lastchar="$repl"
+         fi
+      fi
+   done
+
+   # Trim trailing replacement char
+   if [[ "$slug" == *"$repl" ]]; then
+      slug="${slug%"$repl"}"
+   fi
+
+   REPLY="$slug"
+   echo "$slug"
 }
 
 qbase() {
