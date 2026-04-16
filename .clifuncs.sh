@@ -149,9 +149,27 @@ aliasd() {
    . "$aliasfile"
 }
 
-aliasdf() {
-   # search aliases
-   alias -p | mygrep "$*"
+aliasremove() {
+   local aliasfile="$(realpath "$HOME/.aliases.sh")"
+   local tmp_new_aliases=$(mktemp)
+   local alias_to_remove="$1"
+
+   if grep -vE "^[[:space:]]*alias[[:space:]]+$alias_to_remove=" <"$aliasfile" >"$tmp_new_aliases"; then
+      hline Remove the following lines
+      diff "$aliasfile" "$tmp_new_aliases"
+      if ok_confirm; then
+         trash "$aliasfile"
+         mv -v "$tmp_new_aliases" "$aliasfile"
+         unalias "$alias_to_remove"
+      else
+         \rm "$tmp_new_aliases"
+         return 1
+      fi
+   else
+      warn "Alias $alias_to_remove not found in $aliasfile"
+      \rm "$tmp_new_aliases"
+   fi
+
 }
 
 mkcd() {

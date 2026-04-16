@@ -32,7 +32,6 @@ export ip4_regex='^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[
 export ip6_regex='^[0-9a-fA-F]{0,4}(:[0-9a-fA-F]{0,4}){2,7}$'
 export ip46_regex='^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F]{0,4}(:[0-9a-fA-F]{0,4}){2,7}$'
 
-
 ## other global vars ##
 
 imgext=(gif jpg jpe jpeg png webp heic avif bmp tif tiff)
@@ -92,6 +91,10 @@ announce() {
    } >/dev/stderr
 }
 
+ok() {
+   echo -e "✅ $*" >&2
+}
+
 info() {
    # USAGE: info MESSAGE
    echo -e "🚹 $*" >&2
@@ -115,6 +118,77 @@ filename() {
    # display filename with icon (no newline!)
 
    printf "📃 %s\n" "$@"
+}
+
+echo_indented() {
+   # USAGE:
+   #    `echo_indented -4 Hello World` prints `    Hello World`
+   #    `echo_indented Hello World` prints `   Hello World` (3 space default)
+   #    `ECHO_INDENT=5 echo_indented Hello World` prints `     Hello World` (5 spaces)
+
+   local indent_level=3
+   local message
+
+   # check for explicit indent level as first arg
+   if [[ $1 =~ ^-[0-9]+$ ]]; then
+      indent_level="${1#-}"
+      shift
+   elif [[ -n $ECHO_INDENT ]]; then
+      indent_level="$ECHO_INDENT"
+   fi
+
+   message="$*"
+   printf "%${indent_level}s%s\n" "" "$message"
+}
+
+slug() {
+   # USAGE: slug [REPL] STRING [STRING...]
+   # e.g.
+   #      slug "Hello World!" -> hello-world
+   #      slug _ "Hello World!" -> hello_world
+   #      slug - "Hello World!" -> hello-world
+   #      slug " Hello" "World!" -> hello-world
+   #      slug _ "Hello!!!!! World!!!!!" -> hello_world"
+   # REPL char: only - or _ allowed, defaults to -
+   # REPL char trimmed from start and end
+   # REPL char is not repeated
+   # Result in REPLY
+
+   local repl text slug lastchar
+
+   # Check if first arg is a replacement char
+   if [[ $1 =~ ^[-_]$ ]]; then
+      repl="$1"
+      shift
+   else
+      repl='-'
+   fi
+
+   [ $# -ge 1 ] || return 1
+
+   text="$*"
+   lastchar=""
+
+   for ((pos = 0; pos < ${#text}; pos++)); do
+      char="${text:$pos:1}"
+      if [[ $char =~ ^[a-zA-Z0-9]$ ]]; then
+         slug+="${char,}"
+         lastchar="$char"
+      else
+         if [[ $lastchar != "$repl" && -n $slug ]]; then
+            slug+="$repl"
+            lastchar="$repl"
+         fi
+      fi
+   done
+
+   # Trim trailing replacement char
+   if [[ "$slug" == *"$repl" ]]; then
+      slug="${slug%"$repl"}"
+   fi
+
+   REPLY="$slug"
+   echo "$slug"
 }
 
 qbase() {
@@ -719,28 +793,33 @@ timestamp() {
 
    while [[ "$1" == -* ]]; do
       case "$1" in
-         -q) quiet=true; shift ;;
-         -t) time_only=true; shift ;;
-         *) break ;;
+      -q)
+         quiet=true
+         shift
+         ;;
+      -t)
+         time_only=true
+         shift
+         ;;
+      *) break ;;
       esac
    done
 
-   if $time_only; then
-      printf -v my_timestamp '%(%H:%M:%S)T' -1
-   else
-      #shellcheck disable=SC2034
-      printf -v my_timestamp '%(%F_%H:%M:%S)T' -1
-   fi
+   printf -v my_timestamp '%(%H:%M:%S)T' -1
+   printf -v my_date_time_stamp '%(%F_%H:%M:%S)T' -1
 
    # shellcheck disable=SC2034
-   TIMESTAMP="$my_timestamp"
+   TIMESTAMP="$my_date_time_stamp"
+   if $time_only; then
+      TIMESTAMP="$my_timestamp"
+   fi
 
    if [ $# -gt 0 ]; then
       local -n ptr=${1}
-      ptr="$my_timestamp"
+      ptr="$TIMESTAMP"
    fi
 
-   $quiet || echo "$my_timestamp"
+   $quiet || echo "$TIMESTAMP"
 }
 
 datestamp() {
@@ -816,19 +895,19 @@ caller() {
    REPLY="$caller_var"
 }
 
-sanitize() {
-   # usage: sanitize STRING [TARGET_VAR]
-   # result in $REPLY or $TARGET_VAR if specified
+# sanitize() {
+#    # usage: sanitize STRING [TARGET_VAR]
+#    # result in $REPLY or $TARGET_VAR if specified
 
-   REPLY="${1//[^[:alnum:]]/_}"
+#    REPLY="${1//[^[:alnum:]]/_}"
 
-   if [ -n "$2" ]; then
-      local -n ptr=${2}
-      ptr="$REPLY"
-   else
-      echo "$REPLY"
-   fi
-}
+#    if [ -n "$2" ]; then
+#       local -n ptr=${2}
+#       ptr="$REPLY"
+#    else
+#       echo "$REPLY"
+#    fi
+# }
 
 qpager() {
    local qpager=less
@@ -1174,11 +1253,11 @@ azonly() {
    az_sanitize() {
       local input_text
       input_text=$(cat)
-      
+
       # Trim whitespace from beginning and end
       input_text="${input_text#"${input_text%%[![:space:]]*}"}"
       input_text="${input_text%"${input_text##*[![:space:]]}"}"
-      
+
       local strlen=${#input_text}
       local encoded=""
       local pos c o
@@ -1198,11 +1277,11 @@ azonly() {
 
          $az_pattern)
             o="${c}"
-            ((output_length++))
+            ((++output_length))
             ;;
          *)
             printf -v o '%s' "$repl"
-            ((output_length++))
+            ((++output_length))
             ;;
          esac
 
