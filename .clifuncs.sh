@@ -431,3 +431,8 @@ teecopy() {
    fi
 
 }
+
+curlx() {
+   # HTTP status code and headers only, body discarded
+   curl -sS -D /dev/stdout -o /dev/null "$@" | bat
+}
