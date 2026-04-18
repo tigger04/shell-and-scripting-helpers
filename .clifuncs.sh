@@ -436,3 +436,39 @@ curlx() {
    # HTTP status code and headers only, body discarded
    curl -sS -D /dev/stdout -o /dev/null "$@" | bat
 }
+
+### completions ###
+
+_vish_completion() {
+   local cur
+   COMPREPLY=()
+   cur="${COMP_WORDS[COMP_CWORD]}"
+
+   local files files_quoted
+   mapfile -t files < <(cd ~/bin && fd . -tx -d1 && cd ~/code/tigoss && fd . -td -d1)
+   printf -v files_quoted '%q ' "${files[@]}"
+
+   COMPREPLY=($(compgen -W "${files_quoted}" -- ${cur}))
+   return 0
+}
+
+complete -F _vish_completion vish
+
+_deploy_completion() {
+   # Complete .yaml filenames from . and ./config/, stripping path and extension
+   local cur
+   COMPREPLY=()
+   cur="${COMP_WORDS[COMP_CWORD]}"
+
+   local files=()
+   mapfile -t files < <(compgen -G "${cur}*.yaml" 2>/dev/null)
+   mapfile -t -O "${#files[@]}" files < <(compgen -G "config/${cur}*.yaml" 2>/dev/null)
+
+   # Strip config/ prefix and .yaml suffix
+   files=("${files[@]#config/}")
+   files=("${files[@]%.yaml}")
+
+   COMPREPLY=("${files[@]}")
+}
+
+complete -F _deploy_completion deploy-app deploy-hugo
