@@ -116,8 +116,7 @@ ticktext() {
 
 filename() {
    # display filename with icon (no newline!)
-
-   printf "📃 %s\n" "$@"
+   printf "📃 %s" "$@"
 }
 
 echo_indented() {
@@ -493,7 +492,7 @@ ok_confirm() {
       prompt_message="$* (y/N):"
    fi
 
-   echo -n "$prompt_message"
+   echo -ne "$prompt_message"
 
    read -r cols < <(tput cols)
    if ! [[ $cols =~ ^[0-9]+$ ]] || [ $cols -eq 0 ]; then
@@ -1755,4 +1754,14 @@ ggrep() {
    else
       command grep "$@"
    fi
+}
+
+set_multiline_var() {
+   # usage: set_multiline_var VAR
+   # reads from STDIN until EOF and sets VAR to the value
+   local -n var_ptr=${1}
+   var_ptr=""
+   while IFS= read -r line; do
+      var_ptr+="$line"$'\n'
+   done
 }
