@@ -20,8 +20,37 @@
 # e.g.
 #    USAGE: some_function [SOME_OPTIONAL_ARGUMENT] SOME_MANDATORY_ARGUMENT
 
-### quick and dirty path fix ###
-export PATH=~/bin:~/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:"$PATH"
+### PATH augmentation ###
+PATH_ADDITIONS=(
+   ~/bin
+   ~/.local/bin
+   /opt/homebrew/bin
+   /opt/homebrew/sbin
+   /usr/local/bin
+)
+
+augment_dedupe_path() {
+   local p
+   local -A seen
+   local -a deduped
+   local -a all_entries
+   IFS=: read -ra all_entries <<< "$PATH"
+   all_entries+=("${PATH_ADDITIONS[@]}")
+
+   for p in "${all_entries[@]}"; do
+      p="${p%/}"  # normalise trailing slash
+      [[ -d "$p" ]] || continue
+      if [[ -z "${seen[$p]:-}" ]]; then
+         seen[$p]=1
+         deduped+=("$p")
+      fi
+   done
+
+   local IFS=:
+   PATH="${deduped[*]}"
+   export PATH
+}
+augment_dedupe_path
 
 # regexes
 export url_regex='(https?|ftp|file):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]\b'
@@ -65,6 +94,11 @@ die() {
 }
 
 ### bash version check ###
+if [ "${BASH_VERSINFO:-0}" -lt 4 ]; then
+   echo "🔴 Bash version 4 or higher required, you have ${BASH_VERSION}" >&2
+   /opt/homebrew/bin/bash -c "$HOME/bin/notify '🔴 Bash version' \"${BASH_VERSION}\""
+   exit 1
+fi
 
 ### functions ###
 
