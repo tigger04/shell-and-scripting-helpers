@@ -1799,3 +1799,11 @@ set_multiline_var() {
       var_ptr+="$line"$'\n'
    done
 }
+
+quick_timer_cmd () {
+   before_time=$EPOCHREALTIME
+   show_cmd_execute "$@"
+   after_time=$EPOCHREALTIME
+   elapsed=$(echo "$after_time - $before_time" | bc)
+   printf "⏱️  Elapsed time: %.3f seconds\n" "$elapsed"
+}
