@@ -2,8 +2,8 @@
 
 # HELPER FUNCTIONS
 
-#    this to avoid silly warnings as shellcheck can't handle pointers which
-#    are fantastic for bash optimization 🥳
+#    this to avoid silly warnings as shellcheck can't handle indirect
+#    variable references which are fantastic for bash optimization 🥳
 
 # WTF is this thing:
 #    Handy functions, trying to avoid subshells at all costs which slow down
@@ -34,11 +34,11 @@ augment_dedupe_path() {
    local -A seen
    local -a deduped
    local -a all_entries
-   IFS=: read -ra all_entries <<< "$PATH"
+   IFS=: read -ra all_entries <<<"$PATH"
    all_entries+=("${PATH_ADDITIONS[@]}")
 
    for p in "${all_entries[@]}"; do
-      p="${p%/}"  # normalise trailing slash
+      p="${p%/}" # normalise trailing slash
       [[ -d "$p" ]] || continue
       if [[ -z "${seen[$p]:-}" ]]; then
          seen[$p]=1
@@ -239,13 +239,11 @@ qbase() {
    REPLY_DIR=${1%"$REPLY"}
 
    if [ -n "$2" ]; then
-      local -n ptr=${2}
-      ptr="$REPLY"
+      printf -v "$2" '%s' "$REPLY"
    fi
 
    if [ -n "$3" ]; then
-      local -n ptr=${3}
-      ptr="$REPLY_DIR"
+      printf -v "$3" '%s' "$REPLY_DIR"
    fi
 
    if [[ "$REPLY" == */* ]]; then
@@ -375,8 +373,7 @@ uuid() {
       REPLY="$theuuid"
       echo -n "$theuuid"
    else
-      local -n ptr=${1}
-      ptr="$theuuid"
+      printf -v "$1" '%s' "$theuuid"
    fi
 }
 
@@ -386,8 +383,9 @@ trim_quotes() {
    # result(s) in VAR_1, VAR_2 .. VAR_n
 
    while [ $# -gt 0 ]; do
-      local -n ptr=${1}
-      ptr="${ptr//\"/}"
+      local _tmp_val="${!1}"
+      _tmp_val="${_tmp_val//\"/}"
+      printf -v "$1" '%s' "$_tmp_val"
       shift
    done
 }
@@ -398,8 +396,9 @@ quote_quotes() {
    # result(s) in VAR_1, VAR_2 .. VAR_n
 
    while [ $# -gt 0 ]; do
-      local -n ptr=${1}
-      ptr="${ptr//\"/\\\"}"
+      local _tmp_val="${!1}"
+      _tmp_val="${_tmp_val//\"/\\\"}"
+      printf -v "$1" '%s' "$_tmp_val"
       shift
    done
 }
@@ -678,8 +677,7 @@ fullpath() {
    if [[ -z "$mypath" ]]; then
       REPLY=""
       if [[ -n "$output_var" ]]; then
-         local -n ptr="$output_var"
-         ptr=""
+         printf -v "$output_var" '%s' ""
       fi
       return 1
    fi
@@ -761,8 +759,7 @@ fullpath() {
    # Set results
    REPLY="$result_path"
    if [[ -n "$output_var" ]]; then
-      local -n ptr="$output_var"
-      ptr="$result_path"
+      printf -v "$output_var" '%s' "$result_path"
    fi
 }
 
@@ -780,8 +777,7 @@ nicepath() {
    fi
 
    if [ -n "$2" ]; then
-      local -n ptr=${2}
-      ptr="$nice_path"
+      printf -v "$2" '%s' "$nice_path"
    else
       REPLY="$nice_path"
    fi
@@ -848,8 +844,7 @@ timestamp() {
    fi
 
    if [ $# -gt 0 ]; then
-      local -n ptr=${1}
-      ptr="$TIMESTAMP"
+      printf -v "$1" '%s' "$TIMESTAMP"
    fi
 
    $quiet || echo "$TIMESTAMP"
@@ -870,8 +865,7 @@ datestamp() {
    if [[ "$1" == "-q" ]]; then
       : # do nothing
    elif [ $# -gt 0 ]; then
-      local -n ptr=${1}
-      ptr="$DATESTAMP"
+      printf -v "$1" '%s' "$DATESTAMP"
    else
       echo "$DATESTAMP"
    fi
@@ -903,13 +897,11 @@ path_stem_ext() {
    fi
 
    if [ -n "$2" ]; then
-      local -n stem_ptr=${2}
-      stem_ptr="$REPLY_STEM"
+      printf -v "$2" '%s' "$REPLY_STEM"
    fi
 
    if [ -n "$3" ]; then
-      local -n ext_ptr=${3}
-      ext_ptr="$REPLY_EXT"
+      printf -v "$3" '%s' "$REPLY_EXT"
    fi
 }
 
@@ -918,14 +910,13 @@ caller() {
    # usage: caller [CALLER_VAR]
    # result in $REPLY and $CALLER_VAR if specified
 
-   if [ -n "$1" ]; then
-      local -n caller_var=${1}
-   else
-      local caller_var
-   fi
+   local _tmp_val
+   _tmp_val=$(ps -o command= $PPID)
+   REPLY="$_tmp_val"
 
-   caller_var=$(ps -o command= $PPID)
-   REPLY="$caller_var"
+   if [ -n "$1" ]; then
+      printf -v "$1" '%s' "$_tmp_val"
+   fi
 }
 
 # sanitize() {
@@ -999,15 +990,16 @@ blockchart() {
 
    [ $# -gt 0 ]
 
+   local _block_output_var=""
    if [[ "$1" == "-v" ]]; then
       local block_echo_flag=false
       shift
-      local -n block_display=$1
+      _block_output_var="$1"
       shift
    else
       local block_echo_flag=true
-      local block_display
    fi
+   local block_display=""
 
    if [[ "$1" == "-r" ]]; then
       bc_scheme=('🟩' '🟧' '🟥')
@@ -1062,6 +1054,8 @@ blockchart() {
 
    if $block_echo_flag; then
       echo -ne "$block_display"
+   else
+      printf -v "$_block_output_var" '%s' "$block_display"
    fi
 }
 
@@ -1105,8 +1099,7 @@ random_hex() {
    if [ $# -eq 0 ]; then
       REPLY="$random_hex"
    else
-      local -n ptr=${1}
-      ptr="$random_hex"
+      printf -v "$1" '%s' "$random_hex"
    fi
 }
 
@@ -1117,8 +1110,7 @@ get_current_mac_address() {
    read -r REPLY < <(ifconfig en0 ether | grep -Eo '([a-f0-9]{2}:){5}[a-f0-9]{2}')
 
    if [ $# -gt 0 ]; then
-      local -n ptr=${1}
-      ptr="$REPLY"
+      printf -v "$1" '%s' "$REPLY"
    fi
 }
 
@@ -1187,8 +1179,7 @@ get_git_repo_name() {
       fi
 
       if [ -n "$2" ]; then
-         local -n ptr=${2}
-         ptr="$REPLY"
+         printf -v "$2" '%s' "$REPLY"
       fi
    else
       return 1
@@ -1620,9 +1611,8 @@ format_commas() {
       REPLY="$int$result"
    fi
 
-   if [ -n "$2" ]; then # pointer
-      local -n ptr=${2}
-      ptr="$REPLY"
+   if [ -n "$2" ]; then
+      printf -v "$2" '%s' "$REPLY"
    else
       echo "$REPLY"
    fi
@@ -1765,8 +1755,7 @@ free_disk_space_human() {
    read -r REPLY < <(df -h "$path" | awk 'NR==2 {print $4}')
 
    if [ -n "$2" ]; then
-      local -n ptr=${2}
-      ptr="$REPLY"
+      printf -v "$2" '%s' "$REPLY"
    fi
 }
 
@@ -1777,8 +1766,7 @@ free_disk_space_kb() {
    read -r REPLY < <(df -h "$path" | awk 'NR==2 {print $4}')
 
    if [ -n "$2" ]; then
-      local -n ptr=${2}
-      ptr="$REPLY"
+      printf -v "$2" '%s' "$REPLY"
    fi
 }
 
@@ -1793,17 +1781,38 @@ ggrep() {
 set_multiline_var() {
    # usage: set_multiline_var VAR
    # reads from STDIN until EOF and sets VAR to the value
-   local -n var_ptr=${1}
-   var_ptr=""
+   local _tmp_val=""
    while IFS= read -r line; do
-      var_ptr+="$line"$'\n'
+      _tmp_val+="$line"$'\n'
    done
+   printf -v "$1" '%s' "$_tmp_val"
 }
 
-quick_timer_cmd () {
+quick_timer_cmd() {
    before_time=$EPOCHREALTIME
    show_cmd_execute "$@"
    after_time=$EPOCHREALTIME
    elapsed=$(echo "$after_time - $before_time" | bc)
    printf "⏱️  Elapsed time: %.3f seconds\n" "$elapsed"
+}
+
+github_repo_url() {
+   local url_stem
+   if ! url_stem="$(gh repo view --json url -t '{{.url}}')"; then
+      errortext "not a git repository or not a GitHub repository"
+      return 1
+   fi
+
+   if [[ -z "$url_stem" ]]; then
+      errortext "gh returned an empty URL"
+      return 1
+   fi
+
+   if [[ "$1" == "-q" ]]; then
+      REPLY="$url_stem"
+   elif [ -n "$1" ]; then
+      printf -v "$1" '%s' "$url_stem"
+   else
+      echo "$url_stem"
+   fi
 }

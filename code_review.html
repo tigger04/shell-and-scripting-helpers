@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>code_review</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <!-- ABOUTME: Inline CSS for pandoc HTML output of converted markdown -->
+  <!-- ABOUTME: Included verbatim via include-in-header in html-defaults.yaml -->
+  <style>
+  body {
+    font-family: "Asap", Helvetica, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #2d2d2d;
+    background: #fdfdfd;
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    color: #1a1a1a;
+    margin-top: 1.8em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
+  }
+  h1 { font-size: 1.8rem; border-bottom: 1px solid #e0e0e0; padding-bottom: 0.3em; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.15rem; }
+  p { margin: 0 0 1em; }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  blockquote {
+    border-left: 3px solid #c0c0c0;
+    margin: 1em 0;
+    padding: 0.4em 1em;
+    color: #555;
+    background: #fafafa;
+  }
+  code {
+    font-family: "Iosevka Custom", monospace;
+    font-size: 0.9em;
+    background: #f3f4f6;
+    padding: 0.15em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: #f3f4f6;
+    padding: 1em;
+    overflow-x: auto;
+    border-radius: 4px;
+    line-height: 1.45;
+  }
+  pre code { background: none; padding: 0; border-radius: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #d1d5db; padding: 0.45em 0.7em; text-align: left; }
+  th { background: #f3f4f6; font-weight: 600; }
+  tr:nth-child(even) { background: #f9fafb; }
+  hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
+  img { max-width: 100%; height: auto; }
+  ul, ol { padding-left: 1.5em; }
+  li { margin-bottom: 0.3em; }
+  @media print {
+    body { max-width: 100%; padding: 0; color: #000; background: #fff; }
+    a { color: #2563eb; }
+    pre, blockquote { page-break-inside: avoid; }
+    h1, h2, h3 { page-break-after: avoid; }
+  }
+  </style>
+</head>
+<body>
+<h1 id="code-review-replace-local--n-namerefs-with-printf--v">Code Review: Replace <code>local -n</code> namerefs with <code>printf -v</code></h1>
+<p><strong>File:</strong> <code>.qfuncs.sh</code> <strong>Date:</strong> 2026-05-01 <strong>Scope:</strong> Replace all <code>local -n</code> (nameref/pointer) variable assignments with <code>printf -v</code> to eliminate ShellCheck SC2154 warnings.</p>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>19 <code>local -n</code> nameref usages were replaced with <code>printf -v</code> across the file. The changes fall into four categories:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Category</th>
+<th>Functions</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simple assign</td>
+<td><code>qbase</code>, <code>uuid</code>, <code>fullpath</code>, <code>nicepath</code>, <code>timestamp</code>, <code>datestamp</code>, <code>path_stem_ext</code>, <code>random_hex</code>, <code>get_current_mac_address</code>, <code>get_git_repo_name</code>, <code>format_commas</code>, <code>free_disk_space_human</code>, <code>free_disk_space_kb</code>, <code>github_repo_url</code></td>
+<td>14</td>
+</tr>
+<tr>
+<td>Read-modify-write</td>
+<td><code>trim_quotes</code>, <code>quote_quotes</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td>Accumulator</td>
+<td><code>blockchart</code>, <code>set_multiline_var</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td>Restructured</td>
+<td><code>caller</code></td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="blockers">Blockers</h2>
+<p>None. All <code>printf -v</code> replacements are correct and functionally equivalent — with one exception noted below.</p>
+<hr />
+<h2 id="findings">Findings</h2>
+<h3 id="finding-1-behavioural-difference-in-blockchart-line-1058">Finding 1 — Behavioural difference in <code>blockchart</code> (line 1058)</h3>
+<p><strong>Severity:</strong> Smell (potential bug depending on usage)</p>
+<p>The <code>bc_empty</code> variable at line 1013 is set to <code>'\U2B1B'</code> (a backslash escape for a Unicode character). The two output paths now handle this differently:</p>
+<ul>
+<li><strong><code>echo -ne</code> path</strong> (line 1056): interprets <code>\U2B1B</code> as the Unicode character (black square).</li>
+<li><strong><code>printf -v ... '%s'</code> path</strong> (line 1058): stores the literal string <code>\U2B1B</code>, not the Unicode character.</li>
+</ul>
+<p>This means callers using <code>-v VAR</code> would get a different value than callers relying on stdout.</p>
+<p><strong>Recommended fix (choose one):</strong></p>
+<ol type="1">
+<li><p>Replace the escape with the literal Unicode character:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">local</span> <span class="va">bc_empty</span><span class="op">=</span><span class="st">&#39;⬛&#39;</span></span></code></pre></div></li>
+<li><p>Use <code>%b</code> instead of <code>%s</code> in the <code>printf -v</code> call:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="at">-v</span> <span class="st">&quot;</span><span class="va">$_block_output_var</span><span class="st">&quot;</span> <span class="st">&#39;%b&#39;</span> <span class="st">&quot;</span><span class="va">$block_display</span><span class="st">&quot;</span></span></code></pre></div></li>
+</ol>
+<p>Option 1 is preferred — it makes both paths identical without relying on escape interpretation.</p>
+<hr />
+<h3 id="finding-2-stale-nameref-in-commented-out-sanitize-line-929">Finding 2 — Stale nameref in commented-out <code>sanitize</code> (line 929)</h3>
+<p><strong>Severity:</strong> Smell (cosmetic)</p>
+<p>The commented-out <code>sanitize()</code> function still contains <code>local -n ptr=${2}</code>. Not live code, but if ever uncommented it reintroduces the pattern.</p>
+<p><strong>Recommended fix:</strong> No action required unless the function is revived.</p>
+<hr />
+<h3 id="finding-3-local-re-declared-inside-loop-lines-386-399">Finding 3 — <code>local</code> re-declared inside loop (lines 386, 399)</h3>
+<p><strong>Severity:</strong> Smell (cosmetic)</p>
+<p>In <code>trim_quotes</code> and <code>quote_quotes</code>, <code>local _tmp_val=...</code> appears inside a <code>while</code> loop. In bash, <code>local</code> inside a loop redeclares on each iteration — this is harmless (it just reassigns) but technically redundant. <code>local</code> only needs to appear once per function scope.</p>
+<p><strong>Recommended fix:</strong> Move the <code>local</code> declaration before the loop:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">local</span> <span class="va">_tmp_val</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="bu">[</span> <span class="va">$#</span> <span class="ot">-gt</span> 0 <span class="bu">]</span><span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>   <span class="va">_tmp_val</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${</span><span class="op">!</span><span class="va">1}</span><span class="st">&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>   <span class="ex">...</span></span></code></pre></div>
+<hr />
+<h2 id="pre-existing-issues-not-introduced-by-this-change">Pre-existing issues (not introduced by this change)</h2>
+<p>These were observed during review but are outside the scope of this change:</p>
+<ul>
+<li><code>blockchart</code> uses <code>exit 1</code> instead of <code>return 1</code> at lines 1021–1022, which would kill the calling shell if sourced.</li>
+<li><code>blockchart</code> uses <code>set -e</code> at line 988 without restoring it, which changes error handling for the caller.</li>
+<li>The commented-out <code>sanitize</code> function is dead code that could be removed.</li>
+</ul>
+</body>
+</html>
